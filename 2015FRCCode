@@ -1,0 +1,216 @@
+package org.usfirst.frc.team3673.robot;
+
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Gyro;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.buttons.Button;
+
+/**
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the IterativeRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the manifest file in the resource
+ * directory.
+ */
+public class Robot extends IterativeRobot 
+{
+    RobotDrive chassis = new RobotDrive(3, 4, 1, 2); //declares the motor ports
+    Joystick stickLeft = new Joystick(1); //declares the joystick and its port
+        JoystickButton buttonPanic = new JoystickButton(stickLeft, 9); //Button 9 on Left Stick
+    Joystick stickRight = new Joystick(2);
+        JoystickButton buttonPiston = new JoystickButton(stickRight, 1), //Trigger on Right Stick
+                       buttonPulleys = new JoystickButton(stickRight, 2), //Button where the thumb naturally rests on the right stick
+                       startWheels = new JoystickButton(stickRight, 3); //Button 3 on the right stick
+    DigitalInput limitPulleyBot = new DigitalInput(0),
+                 limitPulleyTop = new DigitalInput(1);
+    Talon motorPulleys = new Talon(1); //Declare a talon motor controller and its port
+    Gyro gyro;
+    DoubleSolenoid solPiston = new DoubleSolenoid(1, 2);
+    private boolean isRobotDead = false;
+    private boolean isPistonExtended = false;
+    private boolean statePulley; //When true: moves pulleys up or down. When false, doesn't move pulleys.
+    private boolean statePulleyDirection = false; //When true: moves pulley up. When false, moves pulley down.
+    private double Kp = 0.03; // ? Got it off first web from an example. No clue what this actually means.
+	
+    private void gyroReading()
+    {
+    	gyro = new Gyro(1); //Defines the gyro's port
+    	chassis = new RobotDrive(3, 4, 1, 2);
+    	chassis.setExpiration(0.1);
+    }
+
+    /**
+     * This function is run when the robot is first started up and should be
+     * used for any initialization code.
+     */
+    public void robotInit() 
+    {
+
+    }
+
+    /**
+     * This function is called periodically during autonomous
+     */
+    public void autonomousPeriodic() 
+    {
+    	gyroReading();
+    }        
+
+    /**
+     * This function is called periodically during operator control
+     */
+    public void teleopPeriodic() 
+    {
+    	chassis.setLeftRightMotorOutputs(0,0);
+        chassis.setSafetyEnabled(true);
+        
+        while(isOperatorControl() && isEnabled())
+        {
+            /**
+            *  Panic Mode Controls
+            */
+            if(buttonPanic.get())//Checks to see if button 9 on left stick has been pressed.
+            {
+                isRobotDead =! isRobotDead;//Flips value of "isRobotDead"
+            }
+            
+            if(isRobotDead == false)//Checks to see if "isRobotDead" is true.
+            {
+                /**
+                *  Movement Controls
+                *  
+                *  Programmer's Note: I have no idea what this code does beyond recieve values from the sticks for tank drive.
+                *  As such, it has been sugggested by both my logic and my teammates to leave at alone as it "works fine" for the 
+                *  mechanum wheels.
+                */
+            
+                chassis.tankDrive(stickRight, stickLeft);
+                //chassis.mecanumDrive_Cartesian(stickRight.getX(), stickRight.getY(), -1*stickRight.getTwist(),0); //Enable for feild-based drive control
+                chassis.mecanumDrive_Polar(stickRight.getY(),stickLeft.getX(), stickLeft.getTwist()); //Enable for robot-based drive control
+                
+                /**
+                *  Piston Controls
+                */
+                if(buttonPiston.get())//Checks to see if the trigger on the right stick has been pressed.
+                {
+                    isPistonExtended =! isPistonExtended; //Flips value of piston
+                    
+                    if(isPistonExtended = true)
+                    {
+                        solPiston.set(DoubleSolenoid.Value.kForward); //extendPiston
+                    }
+                    else
+                    {
+                        solPiston.set(DoubleSolenoid.Value.kReverse); //Retract Piston
+                    }
+                }
+                
+                /**
+                *  Pulley Controls (Auto)
+                */
+                if(buttonPulleys.get())//Checks to see if button 2 on the right stick has been pressed
+                {
+                    statePulley =! statePulley; //Flips value of "statePulley"
+                }
+                
+                if(statePulley == true)//If "statePulley" is true...
+                {
+                    statePulleyDirection =! statePulleyDirection;//:Flip value of "statePulleyDirection"
+                    
+                    if(statePulleyDirection == false && limitPulleyBot.get()) //If "sPD" is false AND the pulleys are at the bottom
+                    {
+                    	statePulleyDirection = true; //"sPD" is true
+                    	/*
+                    	 * Note: without this check, it would cause the following if-else chain to default, causing nothing to
+                    	 * happen despite the driver request.
+                    	 */
+                    }
+                    else if(statePulleyDirection == true && limitPulleyTop.get())//If "sPD" is true AND the pulleys aer at the bottom
+                    {
+                    	statePulleyDirection = false; //"sPD" is false
+                    	/*
+                    	 * Note: without this check, it would cause the following if-else chain to default, causing nothing to
+                    	 * happen despite the driver request.
+                    	 */
+                    }
+                    
+                    if(statePulleyDirection == true && !limitPulleyTop.get())//If "sTP" is true AND "lPT" is false...
+                    {
+                        motorPulleys.set(0.2); //move Pulleys up
+                        //Timer.delay(x.x) //May be neccesary for clean motor movement.\
+                        statePulley = false;
+                    }
+                    else if(statePulleyDirection == false && !limitPulleyBot.get())//If "sTP" is false AND "lPB" is false...
+                    {
+                    	motorPulleys.set(-0.2); //move Pulleys down
+                    	//Timer.delay(x.x) //May be neccesary for clean motor movement.
+                    	statePulley = false;
+                    }
+                    else if(!limitPulleyBot.get() && !limitPulleyTop.get())
+                    {
+                    	motorPulleys.set(0.2);
+                    	//Timer.delay(x.x) //May be neccesary for clean motor movement.
+                    	statePulley = false;
+                    }
+                    else//In any other case... (Default)
+                    {
+                        statePulley = false; //"statePulley" is false.
+                    }
+                }
+                
+                /*
+                *  The following is commented out code for another version of the above. It may prevent updating controls.
+                *
+                if(buttonPulleys.get() && limitPulleyTop.get() != limitPulleyBot.get())//If the button has been pressed AND the pulleys are at top
+                {
+                    while(!limitPulleyBot.get())//This (should) move the pulleys until "limitPulleyBot" is true.
+                    {
+                        motorPulleys.set(-0.2); //move pulleys down
+                    }
+                }
+                else if(buttonPulleys.get() && limitPulleyBot.get() != limitPulleyTop.get())//If the button has been pressed AND the pulleys are at bot
+                {
+                    while(!limitPulleyTop.get())//This (should) move the pulleys until they "limitPulleyTop is true.
+                    {
+                        motorPulleys.set(0.2); //move pulleys up
+                    }
+                }
+                else //If the pulleys are not at top or bot
+                {
+                    while(!limitPulleyTop.get())//This (should) move the pulleys until they "limitPulleyTop" is true.
+                    {
+                        motorPulleys.set(0.2); //move Pulleys up
+                    }
+                }*/
+            }
+            else //If "isRobotDead" is true
+            {
+                isPistonExtended = false;
+                //Retract Piston
+                
+                if(!limitPulleyBot.get()) //If the pulleys are not at the bottom
+                {
+                    while(!limitPulleyBot.get()) //while "lPB" is false
+                    {
+                    	motorPulleys.set(-0.2); //move pulleys to the bottom
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * This function is called periodically during test mode
+     */
+    public void testPeriodic() 
+    {
+    
+    }
+    
+}
