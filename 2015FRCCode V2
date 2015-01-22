@@ -1,0 +1,241 @@
+package org.usfirst.frc.team3673.robot;
+
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Gyro;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.buttons.Button;
+
+/*
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the IterativeRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the manifest file in the resource
+ * directory.
+ */
+public class Robot extends IterativeRobot 
+{
+    Talon motorPulley = new Talon(3); //Declare a talon motor controller and its port
+    Talon motorFLeft = new Talon(2);
+    Talon motorRLeft = new Talon(1);
+    Talon motorFRight = new Talon(5);
+    Talon motorRRight = new Talon(4);
+    RobotDrive chassis = new RobotDrive(motorFLeft, motorRLeft, motorFRight, motorRRight); //declares the motors used for the DriveTrain
+    Joystick stickLeft = new Joystick(1); //declares the joystick and its port
+        JoystickButton buttonPanic = new JoystickButton(stickLeft, 9); //(stick, button)
+    Joystick stickRight = new Joystick(0);
+        JoystickButton buttonPiston = new JoystickButton(stickRight, 1), //Trigger on Right Stick
+                       buttonPulley = new JoystickButton(stickRight, 2),
+                       buttonPulleyb = new JoystickButton(stickRight, 3),
+        			   button4 = new JoystickButton(stickRight, 4);
+    DigitalInput limitPulleyBot = new DigitalInput(9),
+                 limitPulleyTop = new DigitalInput(8);
+    Gyro gyro = new Gyro(1); //(Analog port)
+    
+    DoubleSolenoid solPiston = new DoubleSolenoid(1, 2);//(Forward channel on PCM, reverse channel on PCM)
+    Encoder enc = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //(DIOa, DIOb, Direction, Encoding Type)
+    int count;
+    double rotationLeft;
+    private boolean isRobotDead = false;
+    private boolean isPistonExtended = false;
+    private boolean statePulleyDown;
+    private boolean statePulleyUp;
+    private boolean statePulleyRequest;
+    private boolean statePulleyManual;
+    private boolean statePistonRequest;
+    private boolean stopped;
+    private boolean direction;
+    private boolean driveTrainMode = false;
+	@SuppressWarnings("unused") private double Kp = 0.03; // ? Got it off first web from an example. No clue what this actually means.
+	private double distance;
+	double rate;
+    
+	private void initMotor()
+	{
+		chassis.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	chassis.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+	}
+	
+    private void initEnc() //sets the encorder parameters
+    {
+        enc.setMinRate(10); //sets minimum rate before the device is considered not moving.
+        enc.setDistancePerPulse(5); //sets scale factor between distance and pulses
+        enc.setReverseDirection(true); //Sets direction in which the encoder counts.
+        enc.setSamplesToAverage(7); //sets how many samples are taken and averaged when called. (must be between 1 and 127)
+    }
+    
+    private void initGyro()
+    {
+    	gyro.reset();
+    	gyro.startLiveWindowMode();
+    }
+    
+    private void encoderRead()
+    {
+    	count = enc.get(); //Gets current count
+    	distance = enc.getDistance(); //Gets raw count and translates into distance
+    	rate = enc.getRate(); //The rate of the counter (units/sec)
+    	direction = enc.getDirection();
+    	stopped = enc.getStopped();
+    	
+    	System.out.println(count + "\t" + distance + "\t" + rate + "\t" + direction + "\t" + stopped);
+    }
+    
+    private void gyroRead()
+    {
+    	System.out.println(3.6 * gyro.getAngle());
+    	gyro.updateTable();
+    }
+
+    /*
+     * This function is run when the robot is first started up and should be
+     * used for any initialization code.
+     */
+    public void robotInit() 
+    {
+    	initMotor();
+    	initEnc();
+    	initGyro();
+    }
+
+    /*
+     * This function is called periodically during autonomous
+     */
+    public void autonomousPeriodic() 
+    {
+    	encoderRead();
+    	gyroRead();
+    }        
+
+    /*
+     * This function is called periodically during operator control
+     */
+    public void teleopPeriodic() 
+    {
+    	chassis.setLeftRightMotorOutputs(0,0);
+        chassis.setSafetyEnabled(true);
+        
+        statePulleyRequest = false;
+        statePulleyManual = false;
+        statePistonRequest = false;
+        motorPulley.set(0.0);
+
+            /*
+            *  Panic Mode Controls
+            */
+            if(buttonPanic.get())//Checks to see if button 9 on left stick has been pressed.
+            {
+                isRobotDead =! isRobotDead;//Flips value of "isRobotDead"
+            }
+            
+            if(buttonPulley.get())
+            {
+            	statePulleyRequest = true;
+            }
+            
+            if(limitPulleyBot.get())
+            {
+            	statePulleyDown = true;
+            	statePulleyUp = false;
+            }
+            else if(limitPulleyBot.get())
+            {
+            	statePulleyDown = false;
+            	statePulleyUp = true;
+            }
+            
+            /*if(manualUp.get())
+            {
+            	statePulleyRequest = false;
+            	statePulleyManual = true;
+            	statePulleyDown = false;
+            	statePulleyUp = true;
+            }
+            else if(manaulDown.get())
+            {
+            	statePulleyRequest = false;
+            	statePulleyManual = true;
+            	statePulleyDown = true;
+            	statePulleyUp = false;
+            }*/
+            
+            if(buttonPiston.get())
+            {
+            	statePistonRequest = true;
+            }
+            
+            if(isRobotDead == false)
+            {	
+            	if(button4.get())
+            	{
+            		driveTrainMode =! driveTrainMode;
+            		gyro.reset();
+            	}
+            	
+            	if(driveTrainMode == false)
+            	{
+            		chassis.mecanumDrive_Polar(stickRight.getMagnitude(), stickRight.getDirectionDegrees(), stickLeft.getTwist());	
+            	}
+            	else
+            	{
+            		chassis.mecanumDrive_Cartesian(stickRight.getX(), stickRight.getY(), stickLeft.getTwist(), 3.6 * gyro.getAngle());
+            		gyroRead();
+            	}
+            	
+                if(statePulleyRequest == true)
+                {
+                	if(statePulleyDown == true)
+                	{
+                		motorPulley.set(1.0);
+                		encoderRead();
+                	}
+                	else
+                	{
+                		motorPulley.set(1.0);
+                		encoderRead();
+                	}
+                }
+                
+                if(statePulleyManual == true)
+                {
+                	if(statePulleyDown == true)
+                	{
+                		motorPulley.set(1.0);
+                	}
+                	else
+                	{
+                		motorPulley.set(-1.0);
+                	}
+                }
+                else
+                {
+                	//encoderRead();
+                }
+            }
+            else //If "isRobotDead" is true
+            {
+                isPistonExtended = false;
+                solPiston.set(DoubleSolenoid.Value.kReverse);
+                motorFLeft.set(0.0);
+                motorRLeft.set(0.0);
+                motorFRight.set(0.0);
+                motorRRight.set(0.0);
+                motorPulley.set(0.0);
+                gyro.reset();
+            }
+        }
+    
+    /**
+     * This function is called periodically during test mode
+     */
+    public void testPeriodic() 
+    {
+    
+    }
+}
