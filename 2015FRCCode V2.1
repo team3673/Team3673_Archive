@@ -90,26 +90,31 @@ public class Robot extends IterativeRobot
     	dsolPiston.set(DoubleSolenoid.Value.kOff); //dSolPiston to neutral.
     }
     
+    /**
+     *  Returns the values of certain parameters of the encoder to the RioLog
+     */
     private void encoderRead()
     {
     	count = enc.get(); //Gets current count
     	distance = enc.getDistance(); //Gets raw count and translates into distance
     	rate = enc.getRate(); //The rate of the counter (units/sec)
-    	direction = enc.getDirection();
-    	stopped = enc.getStopped();
+    	direction = enc.getDirection(); //Returns a boolean value based on the direction the motor is going
+    	stopped = enc.getStopped(); //returns whether the motor is moving or not
     	
     	System.out.println(count + "\t" + distance + "\t" + rate + "\t" + direction + "\t" + stopped);
     }
     
+    /**
+     * Returns the rough approximation of the gyro angle to the console.
+     */
     private void gyroRead()
     {
     	System.out.println(3.6 * gyro.getAngle());
     	gyro.updateTable();
     }
 
-    /*
-     * This function is run when the robot is first started up and should be
-     * used for any initialization code.
+    /**
+     * This function is called when the robot is first started up.
      */
     public void robotInit() 
     {
@@ -119,8 +124,8 @@ public class Robot extends IterativeRobot
     	initSol();
     }
 
-    /*
-     * This function is called periodically during autonomous
+    /**
+     * This function looped during Autonomous
      */
     public void autonomousPeriodic() 
     {
@@ -128,31 +133,35 @@ public class Robot extends IterativeRobot
     	gyroRead();
     }        
 
-    /*
-     * This function is called periodically during operator control
+    /**
+     * This function is looped during operator control
      */
     public void teleopPeriodic() 
     {
     	chassis.setLeftRightMotorOutputs(0,0);
         chassis.setSafetyEnabled(true);
         
+        /*
+         * These are states and motors that need to be reset every iteration of this loop.
+         */
         statePulleyRequest = false;
         statePulleyManual = false;
-        //statePistonRequest = false;
         motorPulley.set(0.0);
 
         /*
-         *  Panic Mode Controls
+         * The following if statements take snapshot of the Joysticks immeadiatly after the loop starts.
+         * Theoretically, this make the code run faster and prevents a certain level of "double pressing"
+         * and skipping. 
          */
-        if(buttonPanic.get())//Checks to see if button 9 on left stick has been pressed.
+        if(buttonPanic.get())
         {
             isRobotDead =! isRobotDead;//Flips value of "isRobotDead"
         }
-            
+        
         if(button4.get())
         {
-        	driveTrainMode =! driveTrainMode;
-        	gyro.reset();
+        	driveTrainMode =! driveTrainMode; //Flips value of "driveTrainMode"
+        	gyro.reset(); //Resets gyro to the zero position, regardless of the previous angle.
         }
             
         if(buttonPulley.get())
@@ -160,14 +169,14 @@ public class Robot extends IterativeRobot
             statePulleyRequest = true;
         }
             
-        if(limitPulleyTop.get())
+        if(limitPulleyTop.get()) //Checks to see if the limit switch is active
         {
-            statePulleyDown = true;
+            statePulleyDown = true; //Allows pulley to move down, and prevents it from moving up.
             statePulleyUp = false;
         }
-        else if(limitPulleyBot.get())
+        else if(limitPulleyBot.get()) //Checks to see if the limit switch is active
         {
-            statePulleyDown = false;
+            statePulleyDown = false; //vice versa
             statePulleyUp = true;
         }
             
@@ -186,32 +195,56 @@ public class Robot extends IterativeRobot
             statePulleyUp = false;
         }*/
             
-        if(buttonPiston.get())
+        /*
+         * Ok, the piston was a bastard to program. This will require a very long comment chain.
+         * Prepare yourself.
+         */
+        if(buttonPiston.get())//Right, this returns whether the button was pressed.
         {
-        	System.out.println("Button Pressed!");
+        	System.out.println("Button Pressed!"); //This is sent to the console to confirm that the button was pressed.
         	
+        	/*
+        	 * Note: statePistonRequest is a boolean that holds whether or not the driver asked to 
+        	 * fire the piston. If it's false when it gets here, it is set to true to tell the code
+        	 * that the driver would like to fire the piston
+        	 */
             if(statePistonRequest == false)
             {
             	statePistonRequest = true;
-            	System.out.println("sPR =  " + statePistonRequest + " (1)");
+            	System.out.println("sPR =  " + statePistonRequest + " (1)"); //Send this to console to confirm
             	stateLastPressed = true;
+            	/*
+            	 * Note: stateLastPressed is boolean that checks to see if the button was pressed previously. It is 
+            	 * ONLY set to true if this part of the code is reached. While the button remains pressed, this prevents
+            	 * the code from extending/retracting the piston over and over. It must be released for AT LEAST one full
+            	 * loop before the piston can be changed from a state.
+            	 */
             }
         }
-        else
+        else //If the button IS NOT BEING PRESSED
         {
-        	System.out.println("Button Released!");
+        	System.out.println("Button Released!"); //Sent to console to confirm
         	
+        	/*
+        	 * Note: If statePistonRequest is true when it gets here, it is set to false to tell the code
+        	 * that the driver would not like to fire the piston
+        	 */
             if(statePistonRequest == true)
             {
             	statePistonRequest = false;
-            	System.out.println("sPR =  " + statePistonRequest + " (3)");
+            	System.out.println("sPR =  " + statePistonRequest + " (3)"); //Sent to console to confirm
             	stateLastPressed = false;
             }
         }
             
-        if(isRobotDead == false)
+        /*
+         * After this point, all code is internal (except for temporary controls that will be moved later)
+         * This allows the roboRIO to quickly apply all changes desired or required and take another snapshot of
+         * the controls.
+         */
+        if(isRobotDead == false) //If "panic mode" is not enabled
         {	 	
-            if(driveTrainMode == false)
+            if(driveTrainMode == false) //Checks to se if the driver wanted to change drive modes
             {
             	chassis.mecanumDrive_Polar(stickRight.getMagnitude(), stickRight.getDirectionDegrees(), stickLeft.getTwist());	
             }
@@ -221,75 +254,94 @@ public class Robot extends IterativeRobot
             	gyroRead();
             }
             	
-            if(button4.get())
+            if(button4.get()) //TEMPORARY REVERSE PULLEY CONTROL
             {
             	motorPulley.set(1.0);
             }
             	
-            if(statePulleyRequest == true)
+            if(statePulleyRequest == true) //Checks to see if the driver wanted to move the pulley
             {
-                if(statePulleyDown == true)
+                if(statePulleyDown == true) //Checks to see if the pulley is required to move down due to limit switch
                 {
                 	motorPulley.set(-1.0);
                 	encoderRead();
                 }
-                else
+                else // If not, move it up.
                 {
                 	motorPulley.set(1.0);
                 	encoderRead();
                 }
             }
                 
-            if(statePulleyManual == true)
+            if(statePulleyManual == true) //Checks to se if the driver wanted to manually move the pulleys
             {
-                if(statePulleyDown == true)
+                if(statePulleyDown == true) //Checks to see if the pulley is required to move down
                 {
                 	motorPulley.set(1.0);
+                	encoderRead();
                 }
-                else
+                else //If not, move it up.
                 {
                 	motorPulley.set(-1.0);
+                	encoderRead();
                 }
             }
             else
             {
-                //encoderRead();
+                encoderRead();
             }
             
-            if(stateLastPressed == true)
+            if(stateLastPressed == true) //if stateLastPressed is true
             {
-            	if(statePistonRequest == true)
+            	if(statePistonRequest == true)//AND the piston was asked to move
             	{
-            		statePistonExtended =! statePistonExtended;
+            		statePistonExtended =! statePistonExtended; //Flip value of "sPE"
             		System.out.println("sPE =  " + statePistonExtended);
             	}
             }
                 
-            if(statePistonExtended == true)
+            if(statePistonExtended == true) //If "sPE" was flipped to true
             {
-                //solPiston2.set(false);
-                //solPiston.set(true);
-            	dsolPiston.set(DoubleSolenoid.Value.kForward);
+            	dsolPiston.set(DoubleSolenoid.Value.kForward); //Extend piston
             	System.out.println("'Woo!' - Austen C");
-            	stateLastPressed = false;
+            	stateLastPressed = false; //Set stateLastPressed to false
+            	/*
+            	 * Note: technically, the code extends the piston everytime it doesn't retract it. But since it cannot
+            	 * pump more air into the piston, nothing happens on the robot.
+            	 */
             }
-            else
+            else //If it is false
             {
-                //solPiston.set(false);
-                //solPiston2.set(true);
-            	dsolPiston.set(DoubleSolenoid.Value.kReverse);
+            	dsolPiston.set(DoubleSolenoid.Value.kReverse); //retract piston
             	System.out.println("'Ahhh....' - Austen C");
-            	stateLastPressed = false;
+            	stateLastPressed = false; //set "sLP"
+            	/*
+            	 * Note: technically, the code retracts the piston everytime it doesn't extend it. But due to the fact
+            	 * it cannot dump air out of it, nothing happens on the robot.
+            	 */
             }
         }
         else //If "isRobotDead" is true
         {
+        	/*
+        	 * Set all robot parts to default value, and set motors to 0
+        	 */
             motorFLeft.set(0.0);
             motorRLeft.set(0.0);
             motorFRight.set(0.0);
             motorRRight.set(0.0);
             motorPulley.set(0.0);
-            gyro.reset();
+            gyro.reset(); //ResetGyro
+            dsolPiston.set(DoubleSolenoid.Value.kOff);
+            /*
+             * Return all states (apart from panic mode) to default value
+             */
+            statePulleyRequest = false;
+            statePulleyManual = false;
+            statePistonRequest = false;
+            stateLastPressed  = false;
+            stopped = false;
+            driveTrainMode = false;
         }
     }
     
