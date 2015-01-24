@@ -1,3 +1,10 @@
+/*
+ * Changes from V1:
+ *
+ * -Moved button.get()s to before the kill witch check, so teh code runs faster, with less jitteriness
+ * -All non-temporary state/function/command proccesing for tele-op is within the kill switch is internal, making the code run faster.
+ * -Cleaned code up a bit, removing most unused components.
+ */
 package org.usfirst.frc.team3673.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
