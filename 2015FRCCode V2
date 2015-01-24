@@ -2,6 +2,7 @@
  * Changes from V1:
  *
  * -Moved button.get()s to before the kill witch check, so teh code runs faster, with less jitteriness
+ * -Added control to switch DriveTrain from polar to cartessian and vice versa
  * -All non-temporary state/function/command proccesing for tele-op is within the kill switch is internal, making the code run faster.
  * -Cleaned code up a bit, removing most unused components.
  */
