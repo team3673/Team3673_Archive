@@ -1,0 +1,55 @@
+/*
+ * Note: This uses the cRIO and 2014 Control System!
+ */
+ 
+ package edu.wpi.first.wpilibj.templates;
+
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Jaguar;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SimpleRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+
+/**
+ * @author Connor Adam
+ */
+public class AUSTINcode extends SimpleRobot
+{
+    Jaguar jagI = new Jaguar(1);
+    Jaguar jagII = new Jaguar(2);
+    Jaguar jagIII = new Jaguar(3);
+    Jaguar jagIV = new Jaguar(4);
+    RobotDrive chassis = new RobotDrive(jagI, jagII, jagIII, jagIV);
+    Joystick stickRight = new Joystick(1);
+        JoystickButton buttonShirtCannon = new JoystickButton(stickRight, 1);
+    Joystick stickLeft = new Joystick(2);
+    DoubleSolenoid solShirtCannon = new DoubleSolenoid(1, 2);
+    private boolean stateFireCannon = false;
+    
+    public void operatorControl() //When the robot enters Tele-Op, this routine is ran ONCE.
+    {
+        while (isOperatorControl() && isEnabled())
+        {
+            chassis.tankDrive(stickRight, stickLeft);
+            
+            if(buttonShirtCannon.get())
+            {
+                stateFireCannon =! stateFireCannon;
+            }
+            
+            if(stateFireCannon == true)
+            {
+                solShirtCannon.set(DoubleSolenoid.Value.kForward);
+                Timer.delay(0.050);
+                solShirtCannon.set(DoubleSolenoid.Value.kReverse);
+                
+            }
+            else
+            {
+                solShirtCannon.set(DoubleSolenoid.Value.kReverse);
+            }
+        }
+    }
+}
