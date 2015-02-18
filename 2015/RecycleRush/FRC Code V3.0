@@ -1,0 +1,732 @@
+package org.usfirst.frc.team3673.robot;
+
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+/**
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the IterativeRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the manifest file in the resource
+ * directory.
+ */
+public class Robot extends IterativeRobot
+{
+    Talon motorPulley = new Talon(3); //(PWM port)
+    Talon motorFLeft = new Talon(2);
+    Talon motorRLeft = new Talon(1);
+    Talon motorFRight = new Talon(5);
+    Talon motorRRight = new Talon(4);
+    RobotDrive chassis = new RobotDrive(motorFLeft, motorRLeft, motorFRight, motorRRight); //declares the motors used for the DriveTrain
+    Joystick stickLeft = new Joystick(1); //declares the joystick and its port
+        JoystickButton buttonPanic = new JoystickButton(stickLeft, 7), //(stick, button)
+        			   buttonCompressor = new JoystickButton(stickLeft, 9),
+                       buttonDriveMode = new JoystickButton(stickLeft, 11);
+    Joystick stickRight = new Joystick(0);
+        JoystickButton buttonPiston = new JoystickButton(stickRight, 1), //button one is the trigger
+                       buttonPulleyForward = new JoystickButton(stickRight, 3),
+                       buttonPulleyReverse = new JoystickButton(stickRight, 4);
+    DigitalInput limitPulleyBot = new DigitalInput(0), //(DIO port)
+                 limitPulleyTop = new DigitalInput(1);
+    GyroDeadband gyro = new GyroDeadband(1); //(Analog port)
+    DoubleSolenoid dsolPiston1 = new DoubleSolenoid(0, 3);//(Forward channel on PCM, reverse channel on PCM)
+    Compressor comp = new Compressor();
+    Encoder enc = new Encoder(9, 8, false, Encoder.EncodingType.k4X); //(DIOa, DIOb, Direction, Encoding Type)
+    AnalogInput sonar = new AnalogInput(2);
+    private SendableChooser blerg;
+    @SuppressWarnings("unused") private int count; //see encoder
+    private int autoMode; //Used in determining Autonomous routine
+    private boolean isRobotDead = false; //kill switch
+    private boolean statePulleyDown; //When true: pulley is at the bottom of the track
+    private boolean statePulleyUp; //When true: pulley is at the top of track
+    private boolean statePulleyManualUp; //See TeleOp
+    private boolean statePulleyManualDown;//^
+    private boolean statePulleyDirection; // When true: pulley is going up. When false: pulley is going down.
+    private boolean statePistonRequest;// See TeleOp
+    private boolean stopped; //See encoder
+    @SuppressWarnings("unused") private boolean direction; // ^
+    private boolean driveTrainMode = false; //When true: in Cartessian. When false: in polar
+    private boolean statePistonExtended = false; //When true: piston is extended
+    private boolean stateLastPressed; //Saves when the piston button has been pressed
+    private boolean stateCompStat; //When true: Compressor is on. Off when false.
+	private double distance; //See encoder
+	@SuppressWarnings("unused") private double rate; //     ^
+	long refTime; //Used in time measurements
+	long currentTime; // ^
+	long timeDiff; //    ^
+    
+	/**
+	 *  Initializes motors.
+	 */
+	private void initMotor()
+	{
+		//Both right motors will recieve only flipped values from the code (I.E. + to - and - to +)
+		chassis.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	chassis.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+	}
+	
+	/**
+	 * Initializes the parameters for the encoder.
+	 */
+    private void initEnc()
+    {
+        enc.setMinRate(10); //sets minimum rate before the device is considered not moving.
+        enc.setDistancePerPulse(5); //sets scale factor between distance and pulses
+        enc.setReverseDirection(true); //Sets direction in which the encoder counts.
+        enc.setSamplesToAverage(7); //sets how many samples are taken and averaged when called. (must be between 1 and 127)
+    }
+    
+    /**
+     * Initializes the gyro
+     */
+    private void initGyro()
+    {
+    	gyro.reset(); //Resets the gyro to zero.
+    }
+    
+    /**
+     * Initilizes solenoids
+     */
+    private void initSol()
+    {
+    	//Pistons set to neutral
+    	comp.stop();
+    	stateCompStat = false;
+    	dsolPiston1.set(DoubleSolenoid.Value.kOff);
+    }
+    
+    /**
+     * Automatically starts up the camera and sends live feed to the dashboard
+     */
+    private void initCam()
+    {
+    	CameraServer.getInstance().startAutomaticCapture("cam1");
+    }
+   
+    /**
+     * Sends various values under strings to the "variables" tab in the dashboard.
+     */
+    private void initDS()
+    {
+    	SmartDashboard.putBoolean("Cartesian Drive Activated?", driveTrainMode);
+    	SmartDashboard.putBoolean("Compressor Activated?", stateCompStat);
+    	SmartDashboard.putBoolean("Panic Mode Activated?", isRobotDead);
+    	SmartDashboard.putBoolean("Piston Extended?", statePistonExtended);
+    	SmartDashboard.putBoolean("Pulley Going Up?", statePulleyDirection);
+    	SmartDashboard.putBoolean("Pulley Not Moving?", stopped);
+    	
+    	//Should enable a drop down menu on the DS
+    	blerg = new SendableChooser();
+    	blerg.addDefault("Default Auto", 1);
+    	blerg.addObject("Get Tote" , 2);
+    	blerg.addObject("Get Tote and Bin", 3);
+    	blerg.addObject("Get Totes and Bin", 4);
+    }
+    
+    /**
+     *  Returns the values of certain parameters of the encoder to the RioLog
+     */
+    @SuppressWarnings("unused") private void encoderRead()
+    {
+    	count = enc.get(); //Gets current count
+    	distance = enc.getDistance(); //Gets raw count and translates into distance
+    	rate = enc.getRate(); //The rate of the counter (units/sec)
+    	direction = enc.getDirection(); //Returns a boolean value based on the direction the motor is going
+    	stopped = enc.getStopped(); //returns whether the motor is moving or not
+    	
+    	SmartDashboard.putBoolean("Pulley Not Moving?", stopped);
+    }
+    
+    /**
+     * Returns the value of the gyro angle to the console.
+     */
+    private void gyroRead()
+    {
+    	SmartDashboard.putNumber("Gyro", gyro.getAngle());
+    }
+    
+    /**
+     *  This method determines how far the robot to go.
+     *  
+     *  With two totes: 24.5 in/sec + 9 inches of decel.
+     *  
+     * @param distance How far you want the robot to go in feet. (negative: backwards. Postive: forawrds)
+     * @param speed Guesstimate of the inches per second the robot will move at.
+     * @param load How many totes the3 robot is (planned) to carry
+     */
+    public void moveRobot(double distance, double speed, int load)
+    {
+    	double decel = 0; //This is for making sure the robot reaches the required distance by accounting for the distance travlled after the motors stop moving
+    	double time = 0; //Dertimenes actual distance and the neccesary time to get there.
+    	
+    	/* 
+    	 * With no load:
+    	 * @ 100% : 10 ft/sec
+    	 * Therefore....
+    	 * 99% ~ 9.9 ft/sec
+    	 * 50% ~ 5 ft/sec etc.
+    	 * But dont go below 25%
+    	 * 
+    	 * With two totes:
+    	 * @ 50% : 24.5 in/sec + 9 inches of decel.
+    	 */
+    	
+    	if(speed >= 1.0)
+    	{
+    		speed = 1.0; //Sets the speed to 100% if the programmer (or Austin) sets it to above 100%
+    	}
+    	else if(speed <= 0.25)
+    	{
+    		speed = 0.25; //Sets the speed to 25% if the programmer (or Austin) sets it to less than 25%
+    	}
+    	
+    	if(load <= 0) //With no load
+    	{
+    		decel = 0.167; //2 inches of decel
+    		time = Math.abs(distance - decel) / Math.abs(speed * 10);
+    	}
+    	else if(load == 1)
+    	{
+    		decel = 0.5; //(6 inches of decel) This number is arbitrary, more testing with 1 tote required
+    		time = Math.abs(distance - decel) / Math.abs(speed * 8);
+    	}
+    	else if(load == 2)
+    	{
+    		decel = 0.75; //9 inches of decel
+    		time = Math.abs(distance - decel) / Math.abs(speed * 4.08);
+    	}
+    	else if(load >= 3)
+    	{
+    		decel = 1; //(12 inches of decel) This number is arbitrary, more testing with both tests and the bin required.
+    	}
+    	
+    	if(distance < 0)
+    	{
+    		chassis.mecanumDrive_Polar(-speed, 0.0, 0.0); //If the distance is kess than zero, go backwards at "speed"
+        	Timer.delay(time);
+    	}
+    	else
+    	{
+    		chassis.mecanumDrive_Polar(speed, 0.0, 0.0); //Go forward at "speed"
+        	Timer.delay(time);
+    	}
+    	
+    	chassis.mecanumDrive_Polar(0.0, 0.0, 0.0); //Make sure the motors are not moving when the function ends.
+    }
+    
+    /**
+     *  Tells the robt to turn right.
+     *  
+     * @param rotation The degrees you want the robot to turn.
+     */
+    public void turnRobot(double rotation, double motorSpeed)
+    {
+    	System.out.println("Hit tRR"); //Debug line
+    	double time;
+    	
+    	if(rotation <= -180)
+    	{
+    		rotation = -180;
+    	}
+    	else if(rotation >= 180)
+    	{
+    		rotation = 180;
+    	}
+    	
+    	if(rotation < 0)
+    	{
+    		motorSpeed = -motorSpeed;
+    	}
+    	
+    	if(motorSpeed == 0.5)
+    	{
+    		time = (Math.abs(rotation) / 90) * 1.25 ;
+    	}
+    	else
+    	{
+    		time = (Math.abs(rotation) / 90) * 1.9;
+    	}
+    	 
+    	 chassis.mecanumDrive_Polar(0.0, 0.0, motorSpeed);
+    	 Timer.delay(time);
+    	 System.out.println("turnRobot" + motorSpeed + "\t" + time);
+    	 chassis.mecanumDrive_Polar(0.0, 0.0, 0.0);
+    }
+    
+    /**
+     * Allows autonomous to deteremine what to put the arms at.
+     * @param open True: opens arm False: closes arm
+     */
+    private void setArms(boolean open)
+    {
+    	if(open == true)
+    	{
+    		dsolPiston1.set(DoubleSolenoid.Value.kForward);
+    		System.out.println("OPEN");
+    	}
+    	else
+    	{
+    		dsolPiston1.set(DoubleSolenoid.Value.kReverse);
+    		System.out.println("CLOSED");
+    	}
+    }
+    
+    /**
+     * How much you want the pulley to go. Respects Limit switches!
+     * @param distance How many inches up or down you want it to go
+     * @param load The number of totes on the load
+     * @param toMaxDown If you want it to go all the way down (Priority)
+     * @param toMaxTop If you want it to go all the way up (Secondary Priority)
+     */
+    private void setPulley(double distance, int load, boolean toMaxDown, boolean toMaxTop)
+    {
+    	double time = 0;
+    	
+    	/*
+    	 * Account for maximum distance
+    	 */
+    	if(distance > 43.625)
+    	{
+    		distance = 43.625;
+    	}
+    	else if(distance < -43.625)
+    	{
+    		distance = -43.625;
+    	}
+    	
+    	/*
+    	 * Determine load
+    	 */
+    	if(load <= 0)
+    	{
+    		/*
+    		 * T1: 7.7 sec bot to top
+    		 * T2: 7.7
+    		 * T3: 7.7
+    		 * T4: 7.7
+    		 * T5: 7.7
+    		 * Av: 7.7
+    		 * Av Speed: 5.6 in/sec
+    		 */
+    		time = Math.abs(distance) / 5.6;
+    	}
+    	else if(load == 1)
+    	{
+    		/*
+    		 * T1: 8.7
+    		 * T2: 8.7
+    		 * T3: 8.5
+    		 * T4: 8.0
+    		 * T5: 8.1
+    		 * Av: 8.12
+    		 * Av speed: 5.37 in/sec
+    		 */
+    		time = Math.abs((distance) / 5.01);
+    	}
+    	else if(load == 2)
+    	{
+    		/*
+    		 * T1: 8.8
+    		 * T2: 8.6
+    		 * T3: 9.0
+    		 * T4: 8.4
+    		 * T5: 8.5
+    		 * Av: 8.66
+    		 * Av speed: 5.03 in/sec
+    		 */
+    		time = Math.abs(distance) / 5.03;
+    	}
+    	else if(load >= 3)
+    	{
+    		/*
+    		 * T1: 9.6
+    		 */
+    		time = Math.abs(distance) / 1.0;
+    	}
+    	
+    	if(toMaxDown == true)
+    	{
+    		while(!limitPulleyBot.get())
+    		{
+    			motorPulley.set(-1.0);
+    		}
+    	}
+    	else if(toMaxTop == true)
+    	{
+    		while(!limitPulleyTop.get())
+    		{
+    			motorPulley.set(1.0);
+    		}
+    	}
+    	else
+    	{
+    		if(distance < 0)
+    		{
+    			long endTime = System.currentTimeMillis() + (long)(time * 1000);
+    			
+    			System.out.println("DOWN" + "\t" + limitPulleyBot.get() + (endTime - System.currentTimeMillis()));
+    			while(System.currentTimeMillis() < endTime && !limitPulleyBot.get())
+    			{
+    				motorPulley.set(-1.0);
+    				System.out.println("Running" + (endTime - System.currentTimeMillis()));
+    				Timer.delay(0.02);
+    			}
+    			System.out.println("End of Line");
+    		}
+    		else if(distance > 0)
+    		{
+    			double endTime = System.currentTimeMillis() + (time * 1000);
+    			
+    			while(System.currentTimeMillis() < endTime && !limitPulleyTop.get())
+    			{
+    				motorPulley.set(1.0);
+    			}	
+    		}
+    		
+    		System.out.println("DIDNT RUN IF THIS ONLY MESSAGE 1");
+    	}
+    	
+    	motorPulley.set(0.0);
+    	System.out.println("DIDNT RUN IF THIS ONLY MESSAGE 2");
+    }
+    
+    /**
+     * Moves Robot to autozone
+     */
+    @SuppressWarnings("unused") private void moveSelfToAutozone()
+    {
+    	turnRobot(-180, 0.5);
+    	moveRobot(6, 0.5, 0);
+    }
+    
+    @SuppressWarnings("unused") private void moveToteToAutozoneRight()
+    {
+    	setArms(false);
+    	setPulley(9, 1, false, false);
+    	turnRobot(90, 0.5);
+    	moveRobot(9, 0.5, 1);
+    	setArms(true);
+    	moveRobot(-2, 0.5, 0);
+    }
+    
+    private void moveToteToAutozoneLeft()
+    {
+    	setArms(false);
+    	setPulley(24, 1, false, false);
+    	moveRobot(1.9, 0.5, 1);
+    	setPulley(-12, 1, false, false);
+    	setArms(true);
+    	setPulley(-60.0, 0, false, false);
+    	setArms(false);
+    	Timer.delay(0.5);
+    	chassis.mecanumDrive_Polar(1, 90, 0);
+    	Timer.delay(0.1);
+    	chassis.mecanumDrive_Polar(0.0, 0.0, 0.0);
+    	setPulley(10, 2, false, false);
+    	turnRobot(-90, 0.3);
+    	moveRobot(4.5, 0.75, 2);
+    	setArms(true);
+    }
+    
+    @SuppressWarnings("unused") private void moveToteToAutozoneMid()
+    {
+    	setArms(false);
+    	setPulley(9, 0, false, false);
+    	moveRobot(12, 0.5, 1);
+    	setArms(true);
+    	moveRobot(-2, 0.5, 0);
+    }
+ 
+    /**
+     * This function is called when the robot is first started up.
+     */
+    public void robotInit() 
+    {
+    	initMotor();
+    	initEnc();
+    	initGyro();
+    	initSol();
+    	initCam();
+    	initDS();
+    }
+
+    /**
+     * Runs once during autonomous. It is wise to use this for autnomous code.
+     */
+    public void autonomousInit() 
+    {
+    	autoMode = (int)blerg.getSelected();
+    	gyro.reset();
+    	gyro.setSensitivity(0.007 / 3.6);
+    	gyro.setDeadband(0.01);
+    	gyro.reset();
+    	refTime = System.currentTimeMillis();
+    	chassis.setSafetyEnabled(false);
+    	
+    	moveToteToAutozoneLeft();
+    	
+    	switch(autoMode)
+    	{
+    		case 1:
+    			moveToteToAutozoneRight();
+    		case 2:
+    			moveToteToAutozoneLeft();
+    		case 3:
+	    		moveSelfToAutozone();
+    		case 4:
+    			moveToteToAutozoneMid();
+    		default:
+    			moveSelfToAutozone();
+    	}
+    	
+    	System.out.println("Total Run Time" + (System.currentTimeMillis() - refTime) / 1000);
+    }        
+   
+    /**
+     * Run once during teleop, before teleopPeriodic()
+     */
+    public void teleopInit()
+    {
+    	chassis.setLeftRightMotorOutputs(0,0); // ? but it is important!
+        chassis.setSafetyEnabled(true); //? But it is important!
+    }
+    
+    /**
+     * This function is looped during operator control (~20 mS/loop)
+     */
+    public void teleopPeriodic() 
+    {
+        /*
+         * These are states and motors that need to be reset every iteration of this loop.
+         */
+        statePulleyManualUp = false;
+        statePulleyManualDown = false;
+        statePulleyDown = false;
+        statePulleyUp = false;
+        motorPulley.set(0.0);
+        
+        /*
+         * The following if statements take snapshot of the Joysticks immeadiatly after the loop starts.
+         * Theoretically, this make the code run faster and prevents a certain level of "double pressing"
+         * and skipping. 
+         */
+        if(buttonPanic.get())
+        {
+            isRobotDead =! isRobotDead;//Flips value of "isRobotDead"
+        }
+        
+        if(buttonDriveMode.get())
+        {
+        	driveTrainMode =! driveTrainMode; //Flips value of "driveTrainMode"
+        	gyro.reset(); //Resets gyro to the zero position, regardless of the previous angle.
+        }
+          
+        //If POV 0 is at Forward (0), Left Forward (315), or right forward (45) position
+        if(stickRight.getPOV(0) == 0 || stickRight.getPOV(0) == 315 || stickRight.getPOV(0) == 45)
+        {
+            statePulleyDown = false; //Set conflicting values to false
+            statePulleyManualDown = false;
+            statePulleyManualUp = true; //set agreeing values to true
+            statePulleyUp = true;
+        }
+        //If POV 0 is at Back (180), Left Back (225), or Right Back (135) position
+        else if(stickRight.getPOV(0) == 180 || stickRight.getPOV(0) == 135 || stickRight.getPOV(0) == 225)
+        {
+            statePulleyUp = false; //Set conflicting values to false
+            statePulleyManualUp = false;
+            statePulleyManualDown = true; //set agreeing values to true
+            statePulleyDown = true;
+        }
+        
+        if(limitPulleyTop.get()) //Checks to see if the limit switch is active
+        {
+        	
+            statePulleyDown = true; //Allows pulley to move down, and prevents it from moving up.
+            statePulleyUp = false;
+            currentTime = System.currentTimeMillis();
+            timeDiff = currentTime - refTime;
+            distance = enc.getDistance();
+            System.out.println(timeDiff + "\t" + distance);
+            //System.out.println("TOP IS PRESSED");
+        }
+        
+        if(limitPulleyBot.get()) //Checks to see if the limit switch is active
+        {
+            statePulleyDown = false; //vice versa
+            statePulleyUp = true;
+            enc.reset();
+            refTime = System.currentTimeMillis();
+            //System.out.println("BOT IS PRESSED");
+        }
+        /*else
+        {
+        	System.out.println("NEITHER ARE PRESSED");
+        }
+        /*
+         * Ok, the piston was a bastard to program. This will require a very long comment chain.
+         * Prepare yourself.
+         */
+        if(buttonPiston.get())//Right, this returns whether the button was pressed.
+        {
+        	SmartDashboard.putBoolean("Panic Mode Activated?", isRobotDead);
+        	/*
+        	 * Note: statePistonRequest is a boolean that holds whether or not the driver asked to 
+        	 * fire the piston. If it's false when it gets here, it is set to true to tell the code
+        	 * that the driver would like to fire the piston
+        	 */
+            if(statePistonRequest == false)
+            {
+            	statePistonRequest = true;
+            	stateLastPressed = true;
+            	/*
+            	 * Note: stateLastPressed is boolean that checks to see if the button was pressed previously. It is 
+            	 * ONLY set to true if this part of the code is reached. While the button remains pressed, this prevents
+            	 * the code from extending/retracting the piston over and over. It must be released for AT LEAST one full
+            	 * loop before the piston can be changed from a state.
+            	 */
+            }
+        }
+        else //If the button IS NOT BEING PRESSED
+        {
+        	/*
+        	 * Note: If statePistonRequest is true when it gets here, it is set to false to tell the code
+        	 * that the driver would not like to fire the piston
+        	 */
+            if(statePistonRequest == true)
+            {
+            	statePistonRequest = false;
+            	stateLastPressed = false;
+            }
+        }
+        
+        if(buttonCompressor.get())
+        {
+        	stateCompStat =! stateCompStat; //flips value of "sCS"
+        }
+            
+        /*
+         * After this point, all code is internal (except for temporary controls that will be moved later)
+         * This allows the roboRIO to quickly apply all changes desired or required and take another snapshot of
+         * the controls.
+         */
+        if(isRobotDead == false) //If "panic mode" is not enabled
+        {	 	
+        	SmartDashboard.putBoolean("Panic Mode Activated?", isRobotDead);
+        	
+            if(driveTrainMode == false) //Checks to se if the driver wanted to change drive modes
+            {
+            	chassis.mecanumDrive_Polar(stickRight.getMagnitude(), stickRight.getDirectionDegrees(), stickLeft.getTwist());
+            	SmartDashboard.putBoolean("Cartesian Drive Activated?", driveTrainMode);
+            }
+            else
+            {
+            	gyroRead();
+            	chassis.mecanumDrive_Cartesian(stickRight.getX(), stickRight.getY(), stickLeft.getTwist(), gyro.getAngle());
+            	SmartDashboard.putBoolean("Cartesian Drive Activated?", driveTrainMode);
+            }
+                
+            if(statePulleyManualUp == true) //Checks to se if the driver wanted to manually move the pulleys up
+            {
+                if(statePulleyDown == true) //Checks to see if the pulley is required to not move
+                {
+                	motorPulley.set(0.0);
+                }
+                else //If not, move it up.
+                {
+                	motorPulley.set(1.0);
+                	//encoderRead();
+                }
+            }
+            
+            if(statePulleyManualDown == true)//Checks to see if the driver wanted to move the pulleys down
+            {
+            	if(statePulleyUp == true)//Checks to see of the pulleys are required to move up due to a limit switch
+            	{
+            		motorPulley.set(0.0);
+            	}
+            	else //If not, move them down.
+            	{
+            		motorPulley.set(-1.0);
+            		//encoderRead();
+            	}
+            }
+            
+            if(stateLastPressed == true) //if stateLastPressed is true
+            {
+            	if(statePistonRequest == true)//AND the piston was asked to move
+            	{
+            		statePistonExtended =! statePistonExtended; //Flip value of "sPE"
+            	}
+            }
+                
+            if(statePistonExtended == true) //If "sPE" was flipped to true
+            {
+            	dsolPiston1.set(DoubleSolenoid.Value.kForward); //Extend piston
+            	stateLastPressed = false; //Set stateLastPressed to false
+            	SmartDashboard.putBoolean("Piston Extended?", statePistonExtended);
+            	/*
+            	 * Note: technically, the code extends the piston everytime it doesn't retract it. But since it cannot
+            	 * pump more air into the piston again, nothing happens on the robot.
+            	 */
+            }
+            else //If it is false
+            {
+            	dsolPiston1.set(DoubleSolenoid.Value.kReverse); //retract piston
+            	stateLastPressed = false; //set "sLP"
+            	SmartDashboard.putBoolean("Piston Extended?", statePistonExtended);
+            	/*
+            	 * Note: technically, the code retracts the piston everytime it doesn't extend it. But due to the fact
+            	 * it cannot dump air out of it again, nothing happens on the robot.
+            	 */
+            }
+            
+            if(stateCompStat = false)
+            {
+            	comp.stop(); //Should stop the piston compressor
+            }
+            else
+            {
+            	comp.start(); //Should start the compressor
+            }
+        }
+        else //If "isRobotDead" is true
+        {
+        	SmartDashboard.putBoolean("Panic Mode Activated?", isRobotDead);
+        	//Set all hardware to default, and motors to 0 speed
+            motorFLeft.set(0.0);
+            motorRLeft.set(0.0);
+            motorFRight.set(0.0);
+            motorRRight.set(0.0);
+            motorPulley.set(0.0);
+            gyro.reset();
+            dsolPiston1.set(DoubleSolenoid.Value.kOff);
+            //Return all states (apart from panic mode) to default value
+            statePulleyManualUp = false;
+            statePulleyManualDown = false;
+            statePistonRequest = false;
+            stateLastPressed  = false;
+            stopped = false;
+            driveTrainMode = false;
+        }
+    }
+    
+    /**
+     * This function is called periodically during test mode
+     */
+    public void testPeriodic() 
+    {
+    	System.out.println(gyro.getAngle());
+    }
+}
