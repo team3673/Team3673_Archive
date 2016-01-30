@@ -1,0 +1,178 @@
+package org.usfirst.frc.team3673.robot;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+
+public class Robot extends IterativeRobot {
+	//motor controller assignment
+	CANTalon rightFront = new CANTalon(4);
+	CANTalon leftFront = new CANTalon(3);
+	CANTalon leftBack = new CANTalon(1);
+	CANTalon rightBack = new CANTalon(2);
+	CANTalon pickupMotor = new CANTalon(5);
+	
+	//proxy to motor controllers
+	CANTalon rightFrontLogic = rightFront;
+	CANTalon leftFrontLogic = leftFront;
+	CANTalon leftBackLogic = leftBack;
+	CANTalon rightBackLogic = rightBack;
+	
+	//define robot chassis (looks to proxy for logical ID)
+	RobotDrive drive = new RobotDrive(leftFrontLogic, leftBackLogic, rightFrontLogic, rightBackLogic);
+	
+	//define joysticks
+	Joystick left = new Joystick(0);
+	Joystick right = new Joystick(1);
+	
+	//define solenoids
+	DoubleSolenoid solLaunchLeft = new DoubleSolenoid(0, 1);
+	DoubleSolenoid solLaunchRight = new DoubleSolenoid(2, 3);
+	DoubleSolenoid solIntake = new DoubleSolenoid(4, 5);
+	
+	
+	
+	//misc joystick buttons
+	JoystickButton extendPickup = new JoystickButton(left, 5);
+	JoystickButton returnPickup = new JoystickButton(left, 3);
+	JoystickButton reverseDrive = new JoystickButton(left, 6);
+	JoystickButton fireTrigger = new JoystickButton(left, 1);
+	private boolean stateReverseDrive = false;
+	private boolean stateButtonRelease = true;
+	private boolean stateLaunch = false;
+	private boolean stateLaunchRelease = true;
+	
+	//begin real code
+	public void robotInit()
+	{
+		//Flips all drive motors 
+		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+	}
+	
+
+	//autonomous mode
+	public void autonomousPeriodic() {
+		
+	}
+	
+	
+	//teleop mode
+	public void teleopPeriodic() {
+		
+		// drive.tankDrive(left,  right);
+		drive.arcadeDrive(right);
+		
+		
+		//ball intake 
+		   if(left.getPOV(0) == 0 || left.getPOV(0) == 315 || left.getPOV(0) == 45)
+        {
+          
+        	pickupMotor.set(1.0);
+        	System.out.println("in");
+        }
+        else if(left.getPOV(0) == 180 || left.getPOV(0) == 135 || left.getPOV(0) == 225)
+        {
+
+        	pickupMotor.set(-1.0);
+        	System.out.println("out");
+        	
+        }
+        else{
+        	pickupMotor.set(0.0);
+        }
+		
+        //extend ball intake (WIP)
+        if (extendPickup.get()){
+        	solIntake.set(DoubleSolenoid.Value.kForward);
+        }
+        
+        if (returnPickup.get()){
+        	solIntake.set(DoubleSolenoid.Value.kReverse);
+        }
+    
+        
+        
+        if (fireTrigger.get() && !stateLaunchRelease){
+        	stateLaunch =! stateLaunch;
+        	if (stateLaunch){
+    			solLaunchRight.set(DoubleSolenoid.Value.kReverse);
+    			solLaunchLeft.set(DoubleSolenoid.Value.kReverse); 
+        	}
+        	else{
+    			solLaunchRight.set(DoubleSolenoid.Value.kForward);
+    			solLaunchLeft.set(DoubleSolenoid.Value.kForward);
+        	}
+        	
+        
+        }
+        stateLaunchRelease = fireTrigger.get();
+        
+        
+   /*     
+		//fire trigger
+		if (fireTrigger.get()){
+			
+			solLaunchRight.set(DoubleSolenoid.Value.kReverse);
+			solLaunchLeft.set(DoubleSolenoid.Value.kReverse); 
+			
+		}
+		else
+		{
+			
+			solLaunchRight.set(DoubleSolenoid.Value.kForward);
+			solLaunchLeft.set(DoubleSolenoid.Value.kForward);
+		}
+		
+	*/	
+		
+		
+		
+		
+		
+		if (reverseDrive.get() && !stateButtonRelease){
+			stateReverseDrive =! stateReverseDrive;
+			if(stateReverseDrive){
+				 rightFrontLogic = leftBack;
+				 leftFrontLogic = rightBack;
+				 leftBackLogic = rightFront;
+				 rightBackLogic = leftFront;
+				 
+					drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+			}
+			else{
+				//nomal mode
+				rightFrontLogic = rightFront;
+				leftFrontLogic = leftFront;
+				leftBackLogic = leftBack;
+				rightBackLogic = rightBack;
+				
+				drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+		    	
+			}
+		}
+		stateButtonRelease = reverseDrive.get();
+		
+		
+		
+
+        
+			
+		}
+}
+		
+		
+	
+		
+		
+	
