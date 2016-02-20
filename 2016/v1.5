@@ -27,7 +27,7 @@ public class Robot extends IterativeRobot {
 	
 	
 	//define robot chassis (looks to proxy for logical ID)
-	RobotDrive drive;
+	RobotDrive drive = new RobotDrive(leftFrontLogic, leftBackLogic, rightFrontLogic, rightBackLogic);
 	
 	//define joysticks
 	Joystick right = new Joystick(1);
