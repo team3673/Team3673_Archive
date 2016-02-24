@@ -1,0 +1,195 @@
+package org.usfirst.frc.team3673.robot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.Timer;
+import org.usfirst.frc.team3673.robot.MultiCameraServer;
+
+public class Robot extends IterativeRobot {
+	//motor controller assignment on CAN Bus
+	CANTalon rightFront = new CANTalon(4);
+	CANTalon leftFront = new CANTalon(3);
+	CANTalon leftBack = new CANTalon(1);
+	CANTalon rightBack = new CANTalon(2);
+	CANTalon pickupMotor = new CANTalon(5);
+	CANTalon flyLaunchLeft = new CANTalon(11);
+	CANTalon flyLaunchRight = new CANTalon(12);
+	CANTalon kicker1 = new CANTalon(9);
+	CANTalon kicker2 = new CANTalon(10);
+	
+	//proxy to motor controllers
+	CANTalon rightFrontLogic = rightFront;
+	CANTalon leftFrontLogic = leftFront;
+	CANTalon leftBackLogic = leftBack;
+	CANTalon rightBackLogic = rightBack;
+	
+	
+	//define robot chassis (looks to proxy for logical ID)
+	RobotDrive drive = new RobotDrive(leftFrontLogic, leftBackLogic, rightFrontLogic, rightBackLogic);
+	
+	//define joysticks
+	Joystick right = new Joystick(1);
+	Joystick left = new Joystick(0);
+	
+	//reverse drive toggle button & states
+	JoystickButton reverseDrive = new JoystickButton(right, 6);
+		private boolean stateReverseDrive = false;
+		private boolean stateReverseRelease = true;
+		
+	JoystickButton fireTrigger = new JoystickButton(right, 1);
+	JoystickButton reverseFlyWheel = new JoystickButton(right, 12);
+
+	
+	//starts multicamera with 2 cameras
+	MultiCameraServer multiCamera = new MultiCameraServer(2);
+	
+	//begin real code
+	public void robotInit()
+	{
+		//Flips all drive motors 
+		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+    	//sets multicamera to start on port 0
+		multiCamera.setCamera(0);
+		
+	}
+	
+	
+ public void autonomousInit()
+ {
+	 drive.setSafetyEnabled(false);
+	 leftFrontLogic.set(-.4);
+	 leftBackLogic.set(-.4);
+	 rightFrontLogic.set(.4);
+	 rightBackLogic.set(.4);
+	 Timer.delay(3.0);
+	 leftFrontLogic.set(.0);
+	 leftBackLogic.set(.0);
+	 rightFrontLogic.set(.0);
+	 rightBackLogic.set(.0);
+	 flyLaunchLeft.set(1.0);
+	 flyLaunchRight.set(1.0);
+	 Timer.delay(3.0);
+	 kicker1.set(1.0);
+	 kicker2.set(1.0);
+	 pickupMotor.set(1.0);
+	 Timer.delay(5.0);
+	 kicker1.set(0.0);
+	 kicker2.set(0.0);
+	 pickupMotor.set(0.0);
+	 flyLaunchRight.set(0.0);
+	 flyLaunchLeft.set(0.0);
+ }
+
+	//teleop mode
+	public void teleopPeriodic()
+	{
+		 drive.tankDrive(left, right);
+		//drive.arcadeDrive(right);
+		multiCamera.run();
+		
+		//ball pickup roller
+		   if(left.getPOV(0) == 0 || left.getPOV(0) == 315 || left.getPOV(0) == 45)
+        {
+        	pickupMotor.set(1.0);
+        }
+        else if(left.getPOV(0) == 180 || left.getPOV(0) == 135 || left.getPOV(0) == 225)
+        {
+        	pickupMotor.set(-1.0);   	
+        }
+        else
+        {
+        	pickupMotor.set(0.0);
+        }
+		
+		 // kicker roller
+		if(right.getPOV(0) == 0 || right.getPOV(0) == 315 || right.getPOV(0) == 45)
+	    { 
+			kicker1.set(1.0);
+			kicker2.set(1.0);
+	    }
+	    else if(right.getPOV(0) == 180 || right.getPOV(0) == 135 || right.getPOV(0) == 225)
+	    {
+	        kicker1.set(-0.2);
+	        kicker2.set(-0.2);
+	    }
+	    else
+	    {
+	        kicker1.set(0.0);
+			kicker2.set(0.0);
+	    }
+		
+	
+   
+        
+        //fire trigger
+        if (fireTrigger.get())
+        {
+    		flyLaunchLeft.set(-1.0);
+    		flyLaunchRight.set(1.0);
+        }
+        	else
+        {
+        		if (reverseFlyWheel.get())
+        		{
+        			flyLaunchLeft.set(0.5);
+                	flyLaunchRight.set(-0.5);
+        		}
+        		else
+        		{
+        			flyLaunchLeft.set(0.0);
+                	flyLaunchRight.set(0.0);
+        		}
+        }
+		
+		
+		
+		
+        
+
+        //reverse Drive toggle
+		if (reverseDrive.get() && !stateReverseRelease)
+			{
+			stateReverseDrive =! stateReverseDrive;
+			if(stateReverseDrive)
+				{
+				//reverse mode
+				 rightFrontLogic = leftBack;
+				 leftFrontLogic = rightBack;
+				 leftBackLogic = rightFront;
+				 rightBackLogic = leftFront;
+				 
+				 
+					drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, false);
+			    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+			    	//sets camera to new front
+			    	multiCamera.setCamera(1);
+			    	
+			}
+			else
+			{
+				//nomal mode
+				rightFrontLogic = rightFront;
+				leftFrontLogic = leftFront;
+				leftBackLogic = leftBack;
+				rightBackLogic = rightBack;
+				
+				drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+		    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+		    	//sets camera to normal front
+		    	multiCamera.setCamera(0);
+		    	
+			}
+		}
+		stateReverseRelease = reverseDrive.get();
+
+		}
+}
