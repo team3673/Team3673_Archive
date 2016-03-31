@@ -1,0 +1,88 @@
+package org.usfirst.frc.team3673.robot;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.Timer;
+
+public class Robot extends IterativeRobot 
+	{
+	//motor controller assignment on CAN Bus
+	CANTalon rightFront = new CANTalon(4);
+	CANTalon leftFront = new CANTalon(3);
+	CANTalon leftBack = new CANTalon(1);
+	CANTalon rightBack = new CANTalon(2);
+	CANTalon pickupMotor = new CANTalon(5);
+
+	//define robot chassis (looks to proxy for logical ID)
+	RobotDrive drive = new RobotDrive(leftFront, leftBack, rightFront, rightBack);
+
+	//define joysticks
+	Joystick right = new Joystick(1);
+	Joystick left = new Joystick(0);
+
+
+	 long start = System.currentTimeMillis();
+	 long end = start + 7*1000;
+	
+	
+	//begin real code
+	public void robotInit()
+	{
+		//Flips all drive motors 
+		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+    	initCam();
+	}
+	private void initCam()
+	{
+	    CameraServer.getInstance().startAutomaticCapture("cam1");
+	}
+	
+ public void autonomousInit()
+ {
+	 drive.setSafetyEnabled(false);
+	
+	 if(System.currentTimeMillis() <= end)
+	 	{ 
+		 leftFront.set(-.4);
+		 leftBack.set(-.4);
+		 rightFront.set(.4);
+		 rightBack.set(.4); 
+		 }
+	if(System.currentTimeMillis() > end)
+		{
+		 leftFront.set(.4);
+		 leftBack.set(.4);
+		 rightFront.set(-.4);
+		 rightBack.set(-.4); 	
+		}
+}
+
+
+	//teleop mode
+	public void teleopPeriodic()
+	{
+		drive.tankDrive(left, right);
+
+		
+		//ball pickup roller
+		   if(left.getPOV(0) == 0 || left.getPOV(0) == 315 || left.getPOV(0) == 45)
+        {
+        	pickupMotor.set(1.0);
+        }
+        else if(left.getPOV(0) == 180 || left.getPOV(0) == 135 || left.getPOV(0) == 225)
+        {
+        	pickupMotor.set(-1.0);   	
+        }
+        else
+        {
+        	pickupMotor.set(0.0);
+        }
+ 
+	}
+}
