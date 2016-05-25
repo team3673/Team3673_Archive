@@ -23,16 +23,14 @@ public class Robot extends IterativeRobot
 	Joystick right = new Joystick(1);
 	Joystick left = new Joystick(0);
 
-
-	 long start = System.currentTimeMillis();
-	 long end = start + 7*1000;
-	
+	long start = System.currentTimeMillis();
+	long end = start + 7*1000;
 	
 	//begin real code
 	public void robotInit()
 	{
-		//Flips all drive motors 
-		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+	//Flips all drive motors 
+	drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
     	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
     	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
     	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
@@ -45,9 +43,9 @@ public class Robot extends IterativeRobot
 	
  public void autonomousInit()
  {
-	 drive.setSafetyEnabled(false);
+	drive.setSafetyEnabled(false);
 	
-	 if(System.currentTimeMillis() <= end)
+	if(System.currentTimeMillis() <= end)
 	 	{ 
 		 leftFront.set(-.4);
 		 leftBack.set(-.4);
@@ -62,27 +60,8 @@ public class Robot extends IterativeRobot
 		 rightBack.set(-.4); 	
 		}
 }
-
-
 	//teleop mode
 	public void teleopPeriodic()
 	{
 		drive.tankDrive(left, right);
-
-		
-		//ball pickup roller
-		   if(left.getPOV(0) == 0 || left.getPOV(0) == 315 || left.getPOV(0) == 45)
-        {
-        	pickupMotor.set(1.0);
-        }
-        else if(left.getPOV(0) == 180 || left.getPOV(0) == 135 || left.getPOV(0) == 225)
-        {
-        	pickupMotor.set(-1.0);   	
-        }
-        else
-        {
-        	pickupMotor.set(0.0);
-        }
- 
-	}
 }
