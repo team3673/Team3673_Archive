@@ -1,0 +1,100 @@
+
+package org.usfirst.frc.team3673.robot;
+
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.RobotDrive;
+import com.ctre.CANTalon;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.CameraServer;
+import org.usfirst.frc.team3673.robot.vision;
+
+public class Robot extends IterativeRobot {
+
+	CANTalon leftFront = new CANTalon(3);
+	CANTalon leftBack = new CANTalon(4);
+	CANTalon rightFront = new CANTalon(7);
+	CANTalon rightBack = new CANTalon(2);
+	
+	
+	RobotDrive drive = new RobotDrive(leftFront, leftBack, rightFront, rightBack);
+	
+	
+	CANTalon leftFly = new CANTalon(6);
+	CANTalon rightFly = new CANTalon(5);
+	
+	
+	Joystick right = new Joystick(1);
+	Joystick left = new Joystick(0);
+	
+	JoystickButton fireTrigger = new JoystickButton(right, 1);
+	
+	
+	Servo servoX = new Servo(0);
+	Servo servoY = new Servo(1);
+	
+	
+	private void initCam()
+	{
+	    CameraServer.getInstance().startAutomaticCapture("front", 0);
+	    CameraServer.getInstance().startAutomaticCapture("back", 1);
+	}
+	
+	
+	@Override
+	public void robotInit() {
+		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+    	initCam();
+
+	}
+
+	
+	@Override
+	public void autonomousInit() {
+		 drive.setSafetyEnabled(false);
+	}
+
+	@Override
+	public void autonomousPeriodic() {
+
+	}
+
+	@Override
+	public void teleopInit() {
+
+	}
+
+
+	@Override
+	public void teleopPeriodic() {
+		drive.tankDrive(left, right);
+		System.out.print(left.getY());
+		System.out.print("\t");
+		System.out.println(right.getY());
+		
+		
+		
+		//fire trigger
+		if (fireTrigger.get()){
+		
+	   		leftFly.set(-0.3);
+    		rightFly.set(0.3);
+		}
+		else {
+			leftFly.set(0.0);
+			rightFly.set(0.0);
+			
+		}
+		}
+		
+		
+		
+	}
+	
+	
+
+
