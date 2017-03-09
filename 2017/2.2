@@ -1,0 +1,360 @@
+package org.usfirst.frc.team3673.robot;
+
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+
+import com.ctre.CANTalon;
+
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.vision.*;
+import edu.wpi.first.wpilibj.Timer;
+import com.kauailabs.navx.frc.AHRS;
+
+
+public class Robot extends IterativeRobot {
+	
+		private static final int IMG_WIDTH = 320;
+		private static final int IMG_HEIGHT = 240;
+	
+		public VisionThread visionThread;
+		private double gCenterX;
+		private double gWidth;
+		private double gHeight;
+		
+		private double gArea;
+		private double theta = 37.4;
+		private double tinTopW = 15.0;
+		private double tinTopH = 4.0;
+		private double tinBotW = 15.0;
+		private double tinBotH = 2.0; 
+		private final Object imgLock = new Object();
+		private boolean gIsStale = true;
+		
+		private ADXRS450_Gyro gyro = new ADXRS450_Gyro(); 
+		
+		
+		NetworkTable table;
+
+		public Timer timeContour;
+	
+		public Robot() {
+		
+			table = NetworkTable.getTable("GRIP/filterContoursOutput");
+		}
+		
+		edu.wpi.cscore.AxisCamera ACam;
+		String ipAddress = InetAddress("10.36.73.47");
+		
+		Processing processingFile = new Processing(); 
+
+
+		AnalogInput ultrasonic = new AnalogInput(3);
+	
+		CANTalon leftFront = new CANTalon(3);
+		CANTalon leftBack = new CANTalon(4);
+		CANTalon rightFront = new CANTalon(7);
+		CANTalon rightBack = new CANTalon(2);
+		CANTalon roller = new CANTalon(5);
+		
+		long start; // = System.currentTimeMillis();
+		long rev; //= start + 4*1000;
+		long end; //= start + 7*1000;
+		
+		RobotDrive drive = new RobotDrive(leftFront, leftBack, rightFront, rightBack);
+		
+		
+		CANTalon fly = new CANTalon(6);
+		
+		AHRS ahrs = null;
+		long timeElapsed;
+		int hour;
+		float scanVel = ahrs.getVelocityX(); 
+		
+		float speed = ahrs.getRawAccelX()*(System.currentTimeMillis()/1000);
+	    float distance = speed*(System.currentTimeMillis()/1000);
+	    float time = System.currentTimeMillis()/1000;
+		
+		Joystick right = new Joystick(0);
+		Joystick left = new Joystick(1);
+		
+		JoystickButton fireTrigger = new JoystickButton(right, 1);
+		JoystickButton fuelLoad = new JoystickButton(left, 1);
+		JoystickButton gateOpen = new JoystickButton(left, 2);
+		JoystickButton gateClose = new JoystickButton(left, 3); 
+		JoystickButton reverseRoll = new JoystickButton(right, 2);
+		
+		private boolean stategateRelease = true;
+		private boolean stateGate = false;
+		
+		Servo gate = new Servo(0);
+		
+		public double solveDis(double tin, int FOVPixel, double TPixel, double theta){
+			return tin*FOVPixel/(2*TPixel*java.lang.Math.tan(theta));
+		}
+		
+	
+		public void initCam() {
+		ACam = CameraServer.getInstance().addAxisCamera("ACam", "10.36.73.47");
+	}
+	
+	    private String InetAddress(String string) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+	public void robotInit() {
+		ACam = CameraServer.getInstance().addAxisCamera("ACam", "10.36.73.47");
+		ACam.setResolution(IMG_WIDTH, IMG_HEIGHT);
+		
+		speed = scanVel;
+		long timer = System.currentTimeMillis()/1000;
+		timeElapsed = timer;
+			
+		visionThread = new VisionThread(ACam, new Processing(), profile -> {
+	        if (!profile.filterContoursOutput().isEmpty()) {
+	            Rect r = Imgproc.boundingRect(profile.filterContoursOutput().get(0));
+	            synchronized (imgLock) {
+	                gCenterX = r.x + (r.width / 2);
+	                gWidth = r.width;
+	                gHeight = r.height;
+	                gArea = r.area();
+	        		//System.out.println("centerX: " + gCenterX + "\t" + "a: " + gArea + "\t" + "h: " + gHeight + "\t" + "w: " + gWidth);
+	                gIsStale = false;
+	            }
+	        }
+	        else {
+	                gIsStale = true;
+	        
+	        }
+	            
+	    });
+		
+		visionThread.start();
+		
+		/*
+		drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+    	drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+    	*/
+	    	}
+	
+	@Override
+	public void autonomousInit() {
+		 drive.setSafetyEnabled(false);
+		 
+		}
+
+	@Override
+	public void autonomousPeriodic() {
+		double centerX;
+		float xAccel = ahrs.getRawAccelX();
+		float xAngle = ahrs.getRawGyroX();
+		synchronized (imgLock) {
+			centerX = this.gCenterX;
+		}
+		
+		DriverStation.Alliance color;
+    	color = DriverStation.getInstance().getAlliance();
+    	
+    	
+    	if(color == DriverStation.Alliance.Blue){
+    		int station;
+    		station = DriverStation.getInstance().getLocation();
+    		if (station == 1){
+    			if (distance < 2.84) {
+    				 leftFront.set(-.4);
+    				 leftBack.set(-.4);
+    				 rightFront.set(.4);
+    				 rightBack.set(.4); 
+    			} 
+    			else if (distance >= 2.84 && (xAngle*time) <= 60) {
+    				leftFront.set(-0.4);
+    				leftBack.set(-0.4);
+    				rightFront.set(-0.4);
+    				rightBack.set(-0.4);
+    			}
+    			else if (xAngle*time >= 60){
+    				leftFront.set(-.4);
+    				leftBack.set(-.4);
+    				rightFront.set(.4);
+    				rightBack.set(.4);
+    			}
+    			
+    			
+    			
+    			
+    		else if (station == 2) {
+        			if (distance < 2.84) {
+        				 leftFront.set(-.4);
+        				 leftBack.set(-.4);
+        				 rightFront.set(.4);
+        				 rightBack.set(.4); 
+        			}
+        			
+        			
+        			
+        	else {
+            			if (distance < 2.84) {
+            				 leftFront.set(-.4);
+            				 leftBack.set(-.4);
+            				 rightFront.set(.4);
+            				 rightBack.set(.4); 
+            			} 
+            			else if (distance >= 2.84 && (xAngle*time) <= 60) {
+            				leftFront.set(0.4);
+            				leftBack.set(0.4);
+            				rightFront.set(0.4);
+            				rightBack.set(0.4);
+            			}
+            			else if (xAngle*time >= 60){
+            				leftFront.set(-0.4);
+            				leftBack.set(-0.4);
+            				rightFront.set(0.4);
+            				rightBack.set(0.4);
+            			}
+    				}
+    			}
+    		}
+    		if(color == DriverStation.Alliance.Red){
+    			if (station == 1) {
+
+        			if (distance < 2.84) {
+        				System.out.println("Auto Mode 1");
+        				 leftFront.set(-.4);
+        				 leftBack.set(-.4);
+        				 rightFront.set(.4);
+        				 rightBack.set(.4); 
+        			} 
+        			else if (distance >= 2.84 && (xAngle*time) <= 60) {
+        				System.out.println("Auto Mode 2");
+        				leftFront.set(-0.4);
+        				leftBack.set(-0.4);
+        				rightFront.set(-0.4);
+        				rightBack.set(-0.4);
+        			}
+        			else if (xAngle*time >= 60){
+        				leftFront.set(-0.4);
+        				leftBack.set(-0.4);
+        				rightFront.set(0.4);
+        				rightBack.set(0.4);
+        			}
+    			}
+    			else if (station == 2) {
+    				if (distance < 2.84) {
+        				 leftFront.set(-.4);
+        				 leftBack.set(-.4);
+        				 rightFront.set(.4);
+        				 rightBack.set(.4); 
+        			}
+			}
+    			
+    			else {
+    				if (distance < 2.84) {
+        				System.out.println("Auto Mode 1");
+        				 leftFront.set(-.4);
+        				 leftBack.set(-.4);
+        				 rightFront.set(.4);
+        				 rightBack.set(.4); 
+        			} 
+        			else if (distance >= 2.84 && (xAngle*time) <= 60) {
+        				System.out.println("Auto Mode 2");
+        				leftFront.set(0.4);
+        				leftBack.set(0.4);
+        				rightFront.set(0.4);
+        				rightBack.set(0.4);
+        			}
+        			else if (xAngle*time >= 60){
+        				leftFront.set(-0.4);
+        				leftBack.set(-0.4);
+        				rightFront.set(0.4);
+        				rightBack.set(0.4);
+        			}
+    			}
+    		}
+    	}
+   }
+    		
+	
+	
+	@Override
+	public void teleopInit() {
+		
+		}
+
+
+	@Override
+	public void teleopPeriodic() {
+		double area;
+		double width;
+		double height;
+		double centerX;
+		boolean isStale;
+		double gatePosition = gate.getPosition();
+		
+		synchronized (imgLock) {
+			centerX = gCenterX;
+			area = gArea;
+			width = gWidth;
+			height = gHeight;
+			isStale = gIsStale;
+		}
+		
+		double distance = solveDis(tinTopW, IMG_WIDTH, width, theta);
+		
+		drive.tankDrive(left, right);
+		
+		if (!isStale) {
+			System.out.println(" ");
+			System.out.println("centerX: " + centerX + "\t" + "a: " + area + "\t" + "h: " + height + "\t" + "w: " + width);
+			System.out.println("\t " + "Gyro: " + gyro.getAngle() + "\t" + "Distance (in): " + distance);
+			System.out.println((ultrasonic.getAverageValue()*0.3937)/2);
+			gIsStale = true;
+		}
+		
+		if (gateOpen.get()){
+			gate.setPosition(0.0);
+			System.out.println("Gate has been Opened.");
+		}
+		else if (gateClose.get()){
+			gate.setPosition(1.0);
+			System.out.println("Gate has been Closed.");
+		}
+		else {
+		}
+		
+		
+	    
+		if (fuelLoad.get()){
+			roller.set(-0.7);
+			}
+		else if (reverseRoll.get()) {
+			roller.set(0.7);
+			}
+		else {
+			roller.set(0.0);
+		}
+	
+		//fire trigger
+		if (fireTrigger.get()){
+    		fly.set(0.4);
+			}
+		else {
+			
+			fly.set(0.0);
+			
+			
+			}
+		}
+	}
