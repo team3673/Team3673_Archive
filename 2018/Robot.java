@@ -37,10 +37,12 @@ public class Robot extends IterativeRobot {
 	RobotDrive drive = new RobotDrive(leftBack, leftBack, leftBack, leftBack);
 	
 	AHRS ahrs = new AHRS(SPI.Port.kMXP);
-	AxisCamera aCam = new AxisCamera("aCam","10.36.73.47");
+	RopeCamera ropeCamera;
+	GearCamera gearCamera;
 	AnalogInput ultrasonic = new AnalogInput(3);
 	DoubleSolenoid gearPickup = new DoubleSolenoid(SPI.kPCMModules, SPI.kSolenoidChannels);
-
+	
+	GearCamera gearCam;
 	
 	Joystick red = new Joystick(0);
 	Joystick black = new Joystick(1);
@@ -84,8 +86,7 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void robotInit() {
-		GearCamera gearCamera = new GearCamera();
-		
+		gearCamera.gearCamInit();
 		
 	}
 
@@ -138,9 +139,8 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		Scheduler.getInstance().run();
 		GearCamera gearCamera = new GearCamera();
-		CameraServer.getInstance().startAutomaticCapture(aCam);
-		boolean CamConnect = aCam.isConnected();
-		SmartDashboard.putBoolean("CamConnect", false);
+		boolean CamConnect = gearCamera.isRunning();
+		SmartDashboard.putBoolean("CamConnect", true);
 	}
 
 	@Override
@@ -158,8 +158,18 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		DriveCommands DriveCommands = new DriveCommands();
 		Scheduler.getInstance().run();
+		
+		GearCamera gearCamera = new GearCamera();
+		boolean CamConnect = gearCamera.isRunning();
+		SmartDashboard.putBoolean("CamConnect", false);
+		RopeCamera ropeCamera = new RopeCamera();
+		
+		
+		
+		DriveCommands DriveCommands = new DriveCommands();
+		
+		DriveCommands.driveBack1();
 		boolean invert = blackTwelve.get();
 		boolean notInverted = redTwelve.get();
 		SmartDashboard.putBoolean("invert", true);
@@ -183,7 +193,10 @@ public class Robot extends IterativeRobot {
 			drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
 			drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
 			drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
-		}
+			}
+			
+			
+			
 	}
 
 	/**
