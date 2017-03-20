@@ -1,0 +1,274 @@
+package org.usfirst.frc.team3673.robot;
+
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+import org.usfirst.frc.team3673.robot.commands.DriveCommands;
+
+import com.ctre.CANTalon;
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.cscore.AxisCamera;
+//import edu.wpi.cscore.AxisCamera;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.vision.VisionThread;
+
+
+public class Robot extends IterativeRobot {
+	public static final int IMG_WIDTH = 320;
+	public static final int IMG_HEIGHT = 240;
+	private final Object imgLock = new Object();
+
+	
+	private VisionThread visionThread;
+	Processing processingFile = new Processing();
+	private double centerX = 0.0;
+	
+	private double gCenterX;
+	private double gWidth;
+	private double gHeight;
+	private double gArea;
+	private double theta = 37.4;
+	private double tinTopW = 15.0;
+	private double tinTopH = 4.0;
+	private double tinBotW = 15.0;
+	private double tinBotH = 2.0;
+	double distanceToTarget;
+	
+	public boolean gIsStale = true;
+	
+	AxisCamera ACam;
+	String ipAddress = InetAddress("10.36.73.50");
+	
+	
+	CANTalon leftFront = new CANTalon();
+	CANTalon leftBack = new CANTalon();
+	CANTalon rightFront = new CANTalon();
+	CANTalon rightBack = new CANTalon();
+	CANTalon climber = new CANTalon();
+	RobotDrive drive = new RobotDrive(leftBack, leftBack, leftBack, leftBack);
+	DriveCommands DriveCommands = new DriveCommands();
+	
+	Joystick red = new Joystick(0);
+	Joystick black = new Joystick(1);
+	
+	
+	JoystickButton redTrigger = new JoystickButton(red, 1);
+	JoystickButton redTwo = new JoystickButton(red, 2);
+	JoystickButton redThree = new JoystickButton(red, 3);
+	JoystickButton redFour = new JoystickButton(red, 4);
+	JoystickButton redFive = new JoystickButton(red, 5);
+	JoystickButton redSix = new JoystickButton(red, 6);
+	JoystickButton redSeven = new JoystickButton(red, 7);
+	JoystickButton redEight = new JoystickButton(red, 8);
+	JoystickButton redNine = new JoystickButton(red, 9);
+	JoystickButton redTen = new JoystickButton(red, 10);
+	JoystickButton redEleven = new JoystickButton(red, 11);
+	JoystickButton redTwelve = new JoystickButton(red, 12);
+
+	JoystickButton blackTrigger = new JoystickButton(black, 1);
+	JoystickButton blackTwo = new JoystickButton(black, 2);
+	JoystickButton blackThree = new JoystickButton(black, 3);
+	JoystickButton blackFour = new JoystickButton(black, 4);
+	JoystickButton blackFive = new JoystickButton(black, 5);
+	JoystickButton blackSix = new JoystickButton(black, 6);
+	JoystickButton blackSeven = new JoystickButton(black, 7);
+	JoystickButton blackEight = new JoystickButton(black, 8);
+	JoystickButton blackNine = new JoystickButton(black, 9);
+	JoystickButton blackTen = new JoystickButton(black, 10);
+	JoystickButton blackEleven = new JoystickButton(black, 11);
+	JoystickButton blackTwelve = new JoystickButton(black, 12);
+	
+	
+	AHRS ahrs = new AHRS(SPI.Port.kMXP);
+	AnalogInput ultrasonic = new AnalogInput(3);
+	
+	float initTime;
+	float lastTime;
+	float fullTime;
+	float lastXVel;
+	float time;
+	float distance;
+	float xVel = ahrs.getVelocityX();
+	
+	DriverStation.Alliance color = DriverStation.getInstance().getAlliance();
+    int station = DriverStation.getInstance().getLocation();
+
+	Command autonomousCommand;
+	SendableChooser<Command> chooser = new SendableChooser<>();		
+	
+	public double visionDistance(double tin, int FOVPixel, double TPixel, double theta){
+			return tin*FOVPixel/(2*TPixel*java.lang.Math.tan(theta));
+	}
+	private String InetAddress(String string) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public void robotInit() {
+		SmartDashboard.putData("Auto mode", chooser);
+	    
+		ACam = CameraServer.getInstance().addAxisCamera("ACam", "10.36.73.50");
+		ACam.setResolution(IMG_WIDTH, IMG_HEIGHT);
+			
+		visionThread = new VisionThread(ACam, new Processing(), profile -> {
+	        if (!profile.filterContoursOutput().isEmpty()) {
+	            Rect r = Imgproc.boundingRect(profile.filterContoursOutput().get(0));
+	            synchronized (imgLock) {
+	                gCenterX = r.x + (r.width / 2);
+	                gWidth = r.width;
+	                gHeight = r.height;
+	                gArea = r.area();
+	                gIsStale = false;
+	            }
+	        } 
+	        
+	        else {
+	                gIsStale = true;
+	        }
+	            
+			});
+		
+		visionThread.start();
+	   
+	    drive = new RobotDrive(1, 2);
+		
+	}
+
+	
+	@Override
+	public void disabledInit() {
+
+	}
+
+	@Override
+	public void disabledPeriodic() {
+		Scheduler.getInstance().run();
+	}
+
+
+	@Override
+	public void autonomousInit() {
+
+		 drive.setSafetyEnabled(false);
+		 float time = System.currentTimeMillis()/1000f;
+		 float xVel = ahrs.getVelocityX();
+		 float distance = xVel*time;
+		 initTime = System.currentTimeMillis()/1000f;
+		 fullTime = initTime;
+		 xVel = 0;
+		 //lastTime = initTime;
+		
+		autonomousCommand = chooser.getSelected();
+
+		/*
+		 * String autoSelected = SmartDashboard.getString("Auto Selector",
+		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
+		 * = new MyAutoCommand(); break; case "Default Auto": default:
+		 * autonomousCommand = new ExampleCommand(); break; }
+		 */
+
+		// schedule the autonomous command (example)
+		if (autonomousCommand != null)
+			autonomousCommand.start();
+	}
+
+	/**
+	 * This function is called periodically during autonomous
+	 */
+	@Override
+	public void autonomousPeriodic() {
+		synchronized (imgLock) {
+			double centerX;
+			centerX = this.centerX;
+		}
+		double turn = centerX - (320 / 2);
+		drive.arcadeDrive(-0.6, turn * 0.005);
+		synchronized (imgLock) {centerX = this.gCenterX;}
+	
+	
+		Scheduler.getInstance().run();
+		
+	}
+
+	@Override
+	public void teleopInit() {
+		// This makes sure that the autonomous stops running when
+		// teleop starts running. If you want the autonomous to
+		// continue until interrupted by another command, remove
+		// this line or comment it out.
+		//if (autonomousCommand != null)
+		//	autonomousCommand.cancel();
+	}
+
+	/**
+	 * This function is called periodically during operator control
+	 */
+	@Override
+	public void teleopPeriodic() {
+		//AxisCamera aCam = CameraServer.getInstance().addAxisCamera("aCam", "10.36.73.50");
+		Scheduler.getInstance().run();
+    	//aCam.setResolution(320, 240);
+    	//CameraServer.getInstance().addAxisCamera("aCam");
+		
+		System.out.println(" ");
+		System.out.println("centerX: " + centerX + "\t" + "a: " + gArea + "\t" + "h: " + gHeight + "\t" + "w: " + gWidth);
+		System.out.println("\t " + "Gyro: " + ahrs.getRawGyroX() + "\t" + "Distance (in): " + distanceToTarget);
+		System.out.println((ultrasonic.getAverageValue()*0.3937)/2);
+    	
+		SmartDashboard.putBoolean("CamConnect ", false);
+		
+		
+		
+		
+		boolean invert = blackTwelve.get();
+		boolean notInverted = redTwelve.get();
+		SmartDashboard.putBoolean("invert ", false);
+			if (invert == true) {
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
+			}
+//		problematic fave
+			else if (invert == true && notInverted == true){
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
+			
+			}
+		
+			else if (notInverted == true){
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+			drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
+			}
+			
+			if (redTrigger.get()){
+				climber.set(-0.7);
+				}
+			
+			
+	}
+
+	/**
+	 * This function is called periodically during test mode
+	 */
+	@Override
+	public void testPeriodic() {
+		LiveWindow.run();
+	}
+}
