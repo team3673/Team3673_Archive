@@ -35,7 +35,7 @@ public class Robot extends IterativeRobot {
 	public JoystickButton redTen = new JoystickButton(red, 10);
 	public JoystickButton redEleven = new JoystickButton(red, 11);
 	public JoystickButton redTwelve = new JoystickButton(red, 12);
-
+ 
 	// Define joystick buttons for black
 	public JoystickButton blackTrigger = new JoystickButton(black, 1);
 	public JoystickButton blackTwo = new JoystickButton(black, 2);
