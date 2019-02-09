@@ -131,13 +131,16 @@ public class Robot extends TimedRobot {
 		int hatPosition = black.getPOV();
 
 		if (hatPosition > 90 && hatPosition < 270){
-			definitelyTheArmBoy.set(0.2);
+			//definitelyTheArmBoy.set(0.2);
+			System.out.println("Would put arm up");
 		}
 		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
-			definitelyTheArmBoy.set(-0.2);
+			//definitelyTheArmBoy.set(-0.2);
+			System.out.println("Would put arm down");
 		}
 		else {
-			definitelyTheArmBoy.set(0.0);
+			//definitelyTheArmBoy.set(0.0);
+			System.out.println("NOTHING");
 		}
 
 
