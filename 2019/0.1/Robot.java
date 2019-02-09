@@ -1,13 +1,13 @@
 /*
  *	This code is property of the Seaside High School Robotics team, C.Y.B.O.R.G. Seagulls.
- *	Used for FIRST FRC PowerUp 2018 
- *	Alexia M. Walgren 02.19.18
+ *	Used for FIRST FRC Deep Space 2019 
+ *	Alexia M. Walgren 02.09.19
  */
 
 package frc.robot;
 
 import edu.wpi.cscore.AxisCamera;
-import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
@@ -177,7 +177,7 @@ public class Robot extends TimedRobot {
 			//definitelyTheArmBoy.set(0.0);
 			System.out.println("NOTHING");
 		}
-		
+
 		// Define drive type as tank drive (two joysticks)
 		drive.tankDrive(red.getY(), black.getY());
 
