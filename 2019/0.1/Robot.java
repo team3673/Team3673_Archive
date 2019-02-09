@@ -123,22 +123,34 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 
+		// Create int hatPosition to show if hat is pressed up or down
 		int hatPosition = black.getPOV();
 
+		// If hat is pressed down
 		if (hatPosition > 90 && hatPosition < 270){
-			//definitelyTheArmBoy.set(0.2);
-			System.out.println("Would put arm up");
+
+			// Set actuator to go down at 0.2 speed
+			definitelyTheArmBoy.set(-0.2);
+
 		}
+
+		// If hat is pressed up
 		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
-			//definitelyTheArmBoy.set(-0.2);
-			System.out.println("Would put arm down");
+
+			// Set actuator to go up at 0.2 speed
+			definitelyTheArmBoy.set(0.2);
+		
 		}
+
+		// If hat is neither pressed up nor down
 		else {
+
 			//definitelyTheArmBoy.set(0.0);
 			System.out.println("NOTHING");
+
 		}
 
-
+		// Set up tank drive based on joystick inputs
 		drive.tankDrive(red.getY(), black.getY());
 		
 	}
@@ -158,19 +170,32 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		encode.setReverseDirection(false);
+		
+		// Create int hatPosition to show if hat is pressed up or down
 		int hatPosition = black.getPOV();
 
+		// If hat is pressed down
 		if (hatPosition > 90 && hatPosition < 270){
-			//definitelyTheArmBoy.set(0.2);
-			System.out.println("Would put arm up");
+
+			// Set actuator to go down at 0.2 speed
+			definitelyTheArmBoy.set(-0.2);
+
 		}
+
+		// If hat is pressed up
 		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
-			//definitelyTheArmBoy.set(-0.2);
-			System.out.println("Would put arm down");
+
+			// Set actuator to go up at 0.2 speed
+			definitelyTheArmBoy.set(0.2);
+		
 		}
+
+		// If hat is neither pressed up nor down
 		else {
+
 			//definitelyTheArmBoy.set(0.0);
 			System.out.println("NOTHING");
+
 		}
 
 		// Define drive type as tank drive (two joysticks)
