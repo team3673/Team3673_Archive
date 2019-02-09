@@ -1,7 +1,7 @@
 /*
  *	This code is property of the Seaside High School Robotics team, C.Y.B.O.R.G. Seagulls.
- *	Used for FIRST FRC Deep Space 2019
- *	Alexia Maye, 02.09.19
+ *	Used for FIRST FRC PowerUp 2018 
+ *	Alexia M. Walgren 02.19.18
  */
 
 package frc.robot;
@@ -79,36 +79,13 @@ public class Robot extends TimedRobot {
 	public double distance = encode.getDistance();
 
 	// Assign PWM ports to the spark motor controllers
-	public Spark rightFront = new Spark(3);
-	public Spark rightBack = new Spark(1);
-	public Spark leftFront = new Spark(4);
-	public Spark leftBack = new Spark(2);
-	public Spark probablyTheArmBoy = new Spark(5);
-	public Spark  probablyTheHand = new Spark(6);
-
-	// Add front and rear motors to the right side group
-	public SpeedControllerGroup right = new SpeedControllerGroup(rightFront, rightBack);
-
-	// Add front and rear motors to the left side group
-	public SpeedControllerGroup left = new SpeedControllerGroup(leftFront, leftBack);
+	public Spark right = new Spark(1);
+	public Spark left = new Spark(0);
+	public Spark definitelyTheArmBoy = new Spark(2);
 
 	// Define groups to be used for driving
 	public DifferentialDrive drive = new DifferentialDrive(left, right);
 
-	// Solenoid is extended boolean
-	boolean isExtended; // = false;
-
-	// Double leftSpeed to prevent junk values
-	double leftSpeed;
-
-	// Double rightSpeed to prevent junk values
-	double rightSpeed;
-
-	// Set default mode to be baseline auto
-	private int mode = 0;
-
-	// ""
-	SendableChooser Chooser;
 
 	@Override
 	public void robotInit() {
@@ -151,7 +128,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 
-		
+
 		drive.tankDrive(red.getY(), black.getY());
 		
 	}
@@ -185,5 +162,5 @@ public class Robot extends TimedRobot {
 	}
 }
 
-// .- .-.. . -..- .. .- -- .- -.-- .
+// .- .-.. . -..- .. .-    -- .- -.-- .
 // -- .- -. ..- . .-..    .. ...   .-   -.. --- .-. -.-
