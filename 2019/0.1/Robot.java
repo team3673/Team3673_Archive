@@ -1,7 +1,7 @@
 /*
  *	This code is property of the Seaside High School Robotics team, C.Y.B.O.R.G. Seagulls.
- *	Used for FIRST FRC PowerUp 2018 
- *	Alexia M. Walgren 02.19.18
+ *	Used for FIRST FRC Deep Space 2019
+ *	Alexia Maye, 02.09.19
  */
 
 package frc.robot;
