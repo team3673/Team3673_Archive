@@ -170,7 +170,7 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		encode.setReverseDirection(false);
-		
+
 		// Create int hatPosition to show if hat is pressed up or down
 		int hatPosition = black.getPOV();
 
