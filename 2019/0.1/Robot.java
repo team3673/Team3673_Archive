@@ -128,6 +128,18 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 
+		int hatPosition = black.getPOV();
+
+		if (hatPosition > 90 && hatPosition < 270){
+			definitelyTheArmBoy.set(0.2);
+		}
+		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
+			definitelyTheArmBoy.set(-0.2);
+		}
+		else {
+			definitelyTheArmBoy.set(0.0);
+		}
+
 
 		drive.tankDrive(red.getY(), black.getY());
 		
@@ -148,6 +160,18 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		encode.setReverseDirection(false);
+		int hatPosition = black.getPOV();
+
+		if (hatPosition > 90 && hatPosition < 270){
+			definitelyTheArmBoy.set(0.2);
+		}
+		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
+			definitelyTheArmBoy.set(-0.2);
+		}
+		else {
+			definitelyTheArmBoy.set(0.0);
+		}
+
 
 	
 
