@@ -4,18 +4,18 @@
  *	Alexia M. Walgren 02.09.19
  */
 
-package frc.robot;
+package org.usfirst.frc.team3673.robot;
 
 import edu.wpi.cscore.AxisCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.TimedRobot;
+//import org.usfirst.frc.team3673.robot.Pipeline;
 
 public class Robot extends TimedRobot {
 
@@ -127,26 +127,27 @@ public class Robot extends TimedRobot {
 		int hatPosition = black.getPOV();
 
 		// If hat is pressed down
-		if (hatPosition > 90 && hatPosition < 270){
+		if (hatPosition > 95 && hatPosition < 265){
 
 			// Set actuator to go down at 0.2 speed
-			definitelyTheArmBoy.set(-0.2);
+			definitelyTheArmBoy.set(-0.7);
 
 		}
 
+
 		// If hat is pressed up
-		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
+		else if (hatPosition > 0 && hatPosition < 85 || hatPosition > 275){
 
 			// Set actuator to go up at 0.2 speed
-			definitelyTheArmBoy.set(0.2);
+			definitelyTheArmBoy.set(0.7);
 		
 		}
 
 		// If hat is neither pressed up nor down
 		else {
 
-			//definitelyTheArmBoy.set(0.0);
-			System.out.println("NOTHING");
+			definitelyTheArmBoy.set(0.0);
+			//System.out.println("NOTHING");
 
 		}
 
@@ -171,35 +172,37 @@ public class Robot extends TimedRobot {
 		Scheduler.getInstance().run();
 		encode.setReverseDirection(false);
 
-		// Create int hatPosition to show if hat is pressed up or down
-		int hatPosition = black.getPOV();
+	// Create int hatPosition to show if hat is pressed up or down
+	int hatPosition = black.getPOV();
 
-		// If hat is pressed down
-		if (hatPosition > 90 && hatPosition < 270){
+	// If hat is pressed down
+	if (hatPosition > 95 && hatPosition < 265){
 
-			// Set actuator to go down at 0.2 speed
-			definitelyTheArmBoy.set(-0.2);
+		// Set actuator to go down at 0.2 speed
+		definitelyTheArmBoy.set(-0.7);
 
-		}
+	}
 
-		// If hat is pressed up
-		else if (hatPosition > 0 && hatPosition < 90 || hatPosition > 270){
 
-			// Set actuator to go up at 0.2 speed
-			definitelyTheArmBoy.set(0.2);
-		
-		}
+	// If hat is pressed up
+	else if (hatPosition > 0 && hatPosition < 85 || hatPosition > 275){
 
-		// If hat is neither pressed up nor down
-		else {
+		// Set actuator to go up at 0.2 speed
+		definitelyTheArmBoy.set(0.7);
 
-			//definitelyTheArmBoy.set(0.0);
-			System.out.println("NOTHING");
+	}
 
-		}
+	// If hat is neither pressed up nor down
+	else {
 
-		// Define drive type as tank drive (two joysticks)
-		drive.tankDrive(red.getY(), black.getY());
+		definitelyTheArmBoy.set(0.0);
+		//System.out.println("NOTHING");
+
+	}
+
+
+	// Define drive type as tank drive (two joysticks)
+	drive.tankDrive(red.getY(), black.getY());
 
 
 	}
