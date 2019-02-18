@@ -1,7 +1,7 @@
 /*
  *	This code is property of the Seaside High School Robotics team, C.Y.B.O.R.G. Seagulls.
  *	Used for FIRST FRC Deep Space 2019 
- *	Alexia Maye 02.18.19
+ *	Alexia M. Walgren 02.13.19
  */
 
 package frc.robot;
@@ -87,14 +87,28 @@ public class Robot extends TimedRobot {
 	double panPosition;
 	double tiltPosition;
 
-	JoystickButton tiltUp;
-	JoystickButton tiltDown;
-	JoystickButton panRight;
-	JoystickButton panLeft;
-
 	// Create Differential drive train
 	public DifferentialDrive drive;
 
+	// Sets conditions for the boolean isUp
+	private boolean isUp(int dir) {
+		return (dir ==315 || dir == 0 || dir == 45);
+	}
+
+	// Sets conditions for the boolean isDown
+	private boolean isDown(int dir) {
+		return (dir>=135 && dir <= 225);
+	}
+
+	// Sets conditions for the boolean isLeft
+	private boolean isLeft(int dir) {
+		return (dir>=225 && dir <= 315);
+	}
+
+	// Sets conditions for the boolean isRight
+	private boolean isRight(int dir) {
+		return (dir>=45 && dir <= 135);
+	}
 
 	@Override
 	public void robotInit() {
@@ -163,7 +177,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 
-		// Create int leftHat to show if hat is pressed up or down
+		// Sets variable for both joystick hats
 		int leftHat = black.getPOV();
 		int rightHat = red.getPOV();
 
@@ -192,27 +206,28 @@ public class Robot extends TimedRobot {
 
 		}
 
+		if (isUp(rightHat) && tiltPosition < 1.0) {
+			tiltPosition += 0.01;
+		}
+
+		if (isDown(rightHat) && tiltPosition > 0.0) {
+			tiltPosition -= 0.01;
+		}
+
+		if (isLeft(rightHat) && panPosition > 0.0) {
+			panPosition -= 0.01;
+		}
+		
+		if (isRight(rightHat) && panPosition < 1.0)	{
+			panPosition += 0.01;
+		}	
+
 		// Set up tank drive based on joystick inputs
 		drive.tankDrive(red.getY(), black.getY());
 		
 	}
 
-	private boolean isUp(int dir) {
-		return (dir ==315 || dir == 0 || dir == 45);
-	}
-
-	private boolean isDown(int dir) {
-		return (dir>=135 && dir <= 225);
-	}
-
-	private boolean isLeft(int dir) {
-		return (dir>=225 && dir <= 315);
-	}
-
-	private boolean isRight(int dir) {
-		return (dir>=45 && dir <= 135);
-	}
-
+	
 	@Override
 	public void teleopInit() {
 
@@ -229,6 +244,7 @@ public class Robot extends TimedRobot {
 		Scheduler.getInstance().run();
 		encode.setReverseDirection(false);
 
+		// Sets variable for both joystick hats
 		int leftHat = black.getPOV();
 		int rightHat = red.getPOV();
 
@@ -239,7 +255,6 @@ public class Robot extends TimedRobot {
 			definitelyTheArmBoy.set(-0.7);
 
 		}
-
 
 		// If hat is pressed up
 		else if (leftHat >= 0 && leftHat < 85 || leftHat > 275){
