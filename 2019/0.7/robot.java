@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import com.mach.LightDrive.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 //import org.usfirst.frc.team3673.robot.Pipeline;
 
 public class Robot extends TimedRobot {
@@ -141,8 +140,8 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
 
 		// Assign ports to servos
-		servo1 = new Servo(5);
-		servo2 = new Servo(6);
+		servo1 = new Servo(8);
+		servo2 = new Servo(9);
 
 		//Initialize a new PWM LightDrive
 		ldrive_pwm = new LightDrivePWM(servo1, servo2);
