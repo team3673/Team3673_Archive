@@ -11,3 +11,5 @@ Code for 2016 written by: Adam Flaigg-Fairless, Tad Stapleton, and Jack Walker
 Code for 2017 written by: Alexia Walgren, Adam Flaigg-Fairless
 
 Code for 2018 written by: Alexia Walgren
+
+Code for 2019 written by: Alexia Walgren and Jack Walker
