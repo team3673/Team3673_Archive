@@ -26,14 +26,14 @@ public class ArmGrabToggle extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    if(OI.joyRightBtnGrab.get() && !RobotMap.boolSolToggle && !RobotMap.boolIsExtended){
+    if(OI.xcontRightTrigger.get() && !RobotMap.boolSolToggle && !RobotMap.boolIsExtended){
         // Turn on pneumatics
        RobotMap.doubleSolLeft.set(Value.kForward);
        RobotMap.doubleSolRight.set(Value.kForward);
        RobotMap.boolIsExtended = true;
        isFinished();
     }
-    else if(OI.joyRightBtnGrab.get() && !RobotMap.boolSolToggle && RobotMap.boolIsExtended){
+    else if(OI.xcontRightTrigger.get() && !RobotMap.boolSolToggle && RobotMap.boolIsExtended){
         //Set solenoids to reverse
         RobotMap.doubleSolLeft.set(Value.kReverse);
         RobotMap.doubleSolRight.set(Value.kReverse);

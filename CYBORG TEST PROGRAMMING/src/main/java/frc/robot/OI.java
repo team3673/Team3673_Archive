@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 
@@ -43,7 +44,12 @@ public class OI {
   // Start the command when the button is released and let it run the command
   // until it is finished as determined by it's isFinished method.
   // button.whenReleased(new ExampleCommand());
-  public static Joystick joyLeft = new Joystick(0);
-  public static Joystick joyRight = new Joystick(1);
-  public static Button joyRightBtnGrab = new JoystickButton(joyRight, 1);
+
+  
+  // public static Joystick joyLeft = new Joystick(0);
+  // public static Joystick joyRight = new Joystick(1);
+  // public static Button joyRightBtnGrab = new JoystickButton(joyRight, 1);
+  public static XboxController xController = new XboxController(0);
+  public static Button xcontRightTrigger = new JoystickButton(xController, 8);
+  
 }

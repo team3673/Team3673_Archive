@@ -7,8 +7,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -153,15 +155,12 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    RobotMap.robotDriveObject.tankDrive(OI.joyLeft.getY(), OI.joyRight.getY());
+    // RobotMap.robotDriveObject.tankDrive(OI.xController.getY(), OI.xController.getY());
+    RobotMap.robotDriveObject.tankDrive(-OI.xController.getRawAxis(3), -OI.xController.getY(Hand.kRight.kLeft));
+    OI.xcontRightTrigger.toggleWhenPressed(new ArmGrabToggle());
     
-    OI.joyRightBtnGrab.toggleWhenPressed(new ArmGrabToggle());
-
-            
-
-
-
   }
+
 
   /**
    * This function is called periodically during test mode.
