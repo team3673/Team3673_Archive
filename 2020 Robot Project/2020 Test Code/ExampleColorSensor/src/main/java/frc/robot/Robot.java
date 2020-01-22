@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Spark;
@@ -54,6 +55,12 @@ public class Robot extends TimedRobot {
   boolean XboxRightPressed;
 
   boolean XboxLeftPressed; 
+
+  public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
+  public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
+  
+  public double wheelDiameter = 5.98;
+
 
   @Override
   public void robotInit() {
