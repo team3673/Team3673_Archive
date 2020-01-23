@@ -34,6 +34,8 @@ public class Robot extends TimedRobot {
   private Joystick m_leftStick;
   private Joystick m_rightStick;
 
+  private int autoDistance; 
+
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
@@ -56,11 +58,16 @@ public class Robot extends TimedRobot {
 
   boolean XboxLeftPressed; 
 
+  //encoder shtuff
   public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
   
   public double wheelDiameter = 5.98;
+  
+  private Spark leftDrive;
+  private Spark rightDrive;
 
+  private boolean moveForward;
 
   @Override
   public void robotInit() {
@@ -70,23 +77,14 @@ public class Robot extends TimedRobot {
 
 
 
-    final Spark leftDrive = new Spark(0);
+    leftDrive = new Spark(0);
     leftDrive.setInverted(true);
 
-    final Spark rightDrive = new Spark(1);
+    rightDrive = new Spark(1);
     rightDrive.setInverted(true);
 
-    
+    rightEncoder.setReverseDirection(true);
 
-    /*
-    final Spark colorWheel = new Spark(3);
-
-    final Spark colorWheel = new Spark(4);
-
-    final Spark colorWheel = new Spark(5);
-
-    final Spark colorWheel = new Spark(6);
-    */
 
     m_myRobot = new DifferentialDrive(leftDrive, rightDrive);
 
@@ -99,9 +97,43 @@ public class Robot extends TimedRobot {
   }
 
   public void autonomousInit() {
+
+    //distance from init line to alliance wall in inches minus Length of robot (120-34) 86
+    autoDistance = 40;
     
+    leftEncoder.reset();
+
+    rightEncoder.reset();
+
+    leftEncoder.setDistancePerPulse(wheelDiameter * Math.PI / 2048.);
+
+    rightEncoder.setDistancePerPulse(wheelDiameter * Math.PI / 2048);
+
+    moveForward = true;
   }
   public void autonomousPeriodic() {
+
+   // leftDrive.set(0.4);
+
+    //rightDrive.set(0.4);
+    if (moveForward){
+      leftDrive.set(-0.2);
+      rightDrive.set(0.2);
+      if (leftEncoder.getDistance() > autoDistance) {
+        leftDrive.set(0.0);
+        rightDrive.set(0.0);
+        moveForward = false;
+      }  
+      
+    
+    }
+    
+
+    SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
+    SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
+
+    SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
+    SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
 
   }
   @Override
