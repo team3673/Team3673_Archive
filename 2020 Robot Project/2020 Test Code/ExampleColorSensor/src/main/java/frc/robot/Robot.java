@@ -54,10 +54,17 @@ public class Robot extends TimedRobot {
   public static Button xContRightTrigger = new JoystickButton(xController, 8);
   public static Button xContLeftTrigger = new JoystickButton(xController, 7);
 
+  public static Button xContElvaUp = new JoystickButton(xController, 4);
+  public static Button xContElvaDown = new JoystickButton(xController, 2);
+  
+
   boolean XboxRightPressed;
 
   boolean XboxLeftPressed; 
 
+  boolean XboxElvaUp;
+
+  boolean XboxElvaDown;
   //encoder shtuff
   public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
@@ -67,6 +74,8 @@ public class Robot extends TimedRobot {
   private Spark leftDrive;
   private Spark rightDrive;
 
+  public Spark elvaLift;
+
   private boolean moveForward;
 
   @Override
@@ -75,7 +84,7 @@ public class Robot extends TimedRobot {
     m_leftStick = new Joystick(1);
     m_rightStick = new Joystick(2);
 
-
+    elvaLift = new Spark(3);
 
     leftDrive = new Spark(0);
     leftDrive.setInverted(true);
@@ -117,8 +126,8 @@ public class Robot extends TimedRobot {
 
     //rightDrive.set(0.4);
     if (moveForward){
-      leftDrive.set(-0.2);
-      rightDrive.set(0.2);
+      leftDrive.set(-0.5);
+      rightDrive.set(0.5);
       if (leftEncoder.getDistance() > autoDistance) {
         leftDrive.set(0.0);
         rightDrive.set(0.0);
@@ -134,7 +143,6 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
     SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
-
   }
   @Override
   public void teleopPeriodic() {
@@ -165,6 +173,9 @@ public class Robot extends TimedRobot {
     
     XboxRightPressed = xContRightTrigger.get();
     XboxLeftPressed = xContLeftTrigger.get();
+
+    XboxElvaUp = xContElvaUp.get();
+    XboxElvaDown = xContElvaDown.get();
     
     if (XboxRightPressed == true && XboxLeftPressed == true) {
       colorWheel.set(0.0);
@@ -174,6 +185,16 @@ public class Robot extends TimedRobot {
       colorWheel.set(0.5);
     }else {
       colorWheel.set(0.0);
+    }
+
+    if (XboxElvaUp == true && XboxElvaDown == true) {
+      elvaLift.set(0.0);
+    } else if (XboxElvaUp == true) {
+      elvaLift.set(0.5);
+    } else if (XboxElvaDown == true) {
+      elvaLift.set(-0.5);
+    }else {
+      elvaLift.set(0.0);
     }
 
     
@@ -197,6 +218,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("isYellow", booleanYellow);
     SmartDashboard.putBoolean("isBlue", booleanBlue);
     SmartDashboard.putBoolean("isGreen", booleanGreen);
+
+    SmartDashboard.putBoolean("elvaUp", XboxElvaUp);
+    SmartDashboard.putBoolean("elvaDown", XboxElvaDown);
    /* SmartDashboard.putBoolean("XboxRightTrigger", XboxRightPressed);
     SmartDashboard.putBoolean("XboxLeftTrigger", XboxLeftPressed);*/
 
