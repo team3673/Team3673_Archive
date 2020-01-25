@@ -15,7 +15,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
-
+import io.github.pseudoresonance.pixy2api.Pixy2;
+import io.github.pseudoresonance.pixy2api.links.SPILink;
 
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
@@ -33,6 +34,8 @@ public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot;
   private Joystick m_leftStick;
   private Joystick m_rightStick;
+
+  Pixy2 pixy = Pixy2.createInstance(new SPILink());
 
   private int autoDistance; 
 
@@ -101,6 +104,10 @@ public class Robot extends TimedRobot {
     m_colorMatcher.addColorMatch(kGreenTarget);
     m_colorMatcher.addColorMatch(kRedTarget);
     m_colorMatcher.addColorMatch(kYellowTarget); 
+
+    pixy.init();
+    pixy.setLamp((byte) 1, (byte) 1);
+    pixy.setLED(0, 255,0);
 
 
   }
