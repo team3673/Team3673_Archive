@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,7 +46,7 @@ public class Robot extends TimedRobot {
 
   private final ColorMatch m_colorMatcher = new ColorMatch();
 
-  public Spark colorWheel = new Spark(2);
+  public Spark colorWheel = new Spark(6);
 
   private final Color kBlueTarget = ColorMatch.makeColor(0.143, 0.427, 0.429);
   private final Color kGreenTarget = ColorMatch.makeColor(0.197, 0.561, 0.240);
@@ -61,13 +62,13 @@ public class Robot extends TimedRobot {
   public static Button xContElvaDown = new JoystickButton(xController, 2);
   
 
-  boolean XboxRightPressed;
+  boolean xboxRightPressed;
 
-  boolean XboxLeftPressed; 
+  boolean xboxLeftPressed; 
 
-  boolean XboxElvaUp;
+  boolean xboxElvaUp;
 
-  boolean XboxElvaDown;
+  boolean xboxElvaDown;
   //encoder shtuff
   public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
@@ -76,6 +77,11 @@ public class Robot extends TimedRobot {
   
   private Spark leftDrive;
   private Spark rightDrive;
+  //test
+  private Spark leftDriveTwo;
+  private Spark rightDriveTwo;
+  SpeedControllerGroup m_left = new SpeedControllerGroup(leftDrive, leftDriveTwo);
+  SpeedControllerGroup m_right = new SpeedControllerGroup(rightDrive, rightDriveTwo);
 
   public Spark elvaLift;
 
@@ -89,16 +95,24 @@ public class Robot extends TimedRobot {
 
     elvaLift = new Spark(3);
 
-    leftDrive = new Spark(0);
+    leftDrive = new Spark(1);
     leftDrive.setInverted(true);
 
-    rightDrive = new Spark(1);
+    //test
+    leftDriveTwo = new Spark(0);
+    leftDriveTwo.setInverted(true);
+
+    rightDrive = new Spark(3);
     rightDrive.setInverted(true);
+
+    //test
+    rightDriveTwo = new Spark(2);
+    rightDriveTwo.setInverted(true);
 
     rightEncoder.setReverseDirection(true);
 
 
-    m_myRobot = new DifferentialDrive(leftDrive, rightDrive);
+    m_myRobot = new DifferentialDrive(m_left, m_right);
 
     m_colorMatcher.addColorMatch(kBlueTarget);
     m_colorMatcher.addColorMatch(kGreenTarget);
@@ -133,11 +147,11 @@ public class Robot extends TimedRobot {
 
     //rightDrive.set(0.4);
     if (moveForward){
-      leftDrive.set(-0.5);
-      rightDrive.set(0.5);
+      m_left.set(-0.5);
+      m_right.set(0.5);
       if (leftEncoder.getDistance() > autoDistance) {
-        leftDrive.set(0.0);
-        rightDrive.set(0.0);
+        m_left.set(0.0);
+        m_right.set(0.0);
         moveForward = false;
       }  
       
@@ -178,27 +192,27 @@ public class Robot extends TimedRobot {
     boolean booleanBlue = false;
     boolean booleanYellow = false;
     
-    XboxRightPressed = xContRightTrigger.get();
-    XboxLeftPressed = xContLeftTrigger.get();
+    xboxRightPressed = xContRightTrigger.get();
+    xboxLeftPressed = xContLeftTrigger.get();
 
-    XboxElvaUp = xContElvaUp.get();
-    XboxElvaDown = xContElvaDown.get();
+    xboxElvaUp = xContElvaUp.get();
+    xboxElvaDown = xContElvaDown.get();
     
-    if (XboxRightPressed == true && XboxLeftPressed == true) {
+    if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheel.set(0.0);
-    } else if (XboxLeftPressed == true) {
+    } else if (xboxLeftPressed == true) {
       colorWheel.set(-0.5);
-    } else if (XboxRightPressed == true) {
+    } else if (xboxRightPressed == true) {
       colorWheel.set(0.5);
     }else {
       colorWheel.set(0.0);
     }
 
-    if (XboxElvaUp == true && XboxElvaDown == true) {
+    if (xboxElvaUp == true && xboxElvaDown == true) {
       elvaLift.set(0.0);
-    } else if (XboxElvaUp == true) {
+    } else if (xboxElvaUp == true) {
       elvaLift.set(0.5);
-    } else if (XboxElvaDown == true) {
+    } else if (xboxElvaDown == true) {
       elvaLift.set(-0.5);
     }else {
       elvaLift.set(0.0);
@@ -226,8 +240,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("isBlue", booleanBlue);
     SmartDashboard.putBoolean("isGreen", booleanGreen);
 
-    SmartDashboard.putBoolean("elvaUp", XboxElvaUp);
-    SmartDashboard.putBoolean("elvaDown", XboxElvaDown);
+    SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
+    SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
    /* SmartDashboard.putBoolean("XboxRightTrigger", XboxRightPressed);
     SmartDashboard.putBoolean("XboxLeftTrigger", XboxLeftPressed);*/
 
