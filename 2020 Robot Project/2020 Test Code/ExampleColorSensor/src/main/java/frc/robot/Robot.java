@@ -80,10 +80,13 @@ public class Robot extends TimedRobot {
   //test
   private Spark leftDriveTwo;
   private Spark rightDriveTwo;
-  SpeedControllerGroup m_left = new SpeedControllerGroup(leftDrive, leftDriveTwo);
-  SpeedControllerGroup m_right = new SpeedControllerGroup(rightDrive, rightDriveTwo);
+  SpeedControllerGroup m_left;
+  SpeedControllerGroup m_right;
 
-  public Spark elvaLift;
+  private Spark elvaLift;
+
+  private Spark upperIntake;
+  private Spark lowerIntake;
 
   private boolean moveForward;
 
@@ -93,14 +96,16 @@ public class Robot extends TimedRobot {
     m_leftStick = new Joystick(1);
     m_rightStick = new Joystick(2);
 
-    elvaLift = new Spark(3);
+    elvaLift = new Spark(7);
 
-    leftDrive = new Spark(1);
+    leftDrive = new Spark(0);
     leftDrive.setInverted(true);
 
     //test
-    leftDriveTwo = new Spark(0);
+    leftDriveTwo = new Spark(1);
     leftDriveTwo.setInverted(true);
+
+    m_left = new SpeedControllerGroup(leftDrive, leftDriveTwo);
 
     rightDrive = new Spark(3);
     rightDrive.setInverted(true);
@@ -109,10 +114,16 @@ public class Robot extends TimedRobot {
     rightDriveTwo = new Spark(2);
     rightDriveTwo.setInverted(true);
 
+    m_right = new SpeedControllerGroup(rightDrive, rightDriveTwo);
+
     rightEncoder.setReverseDirection(true);
 
 
     m_myRobot = new DifferentialDrive(m_left, m_right);
+
+    upperIntake = new Spark(4);
+
+    lowerIntake = new Spark(5);
 
     m_colorMatcher.addColorMatch(kBlueTarget);
     m_colorMatcher.addColorMatch(kGreenTarget);
@@ -201,9 +212,9 @@ public class Robot extends TimedRobot {
     if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheel.set(0.0);
     } else if (xboxLeftPressed == true) {
-      colorWheel.set(-0.5);
+      colorWheel.set(-0.2);
     } else if (xboxRightPressed == true) {
-      colorWheel.set(0.5);
+      colorWheel.set(0.2);
     }else {
       colorWheel.set(0.0);
     }
