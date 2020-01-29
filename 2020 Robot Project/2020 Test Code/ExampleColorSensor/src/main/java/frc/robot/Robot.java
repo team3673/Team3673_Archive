@@ -60,7 +60,12 @@ public class Robot extends TimedRobot {
 
   public static Button xContElvaUp = new JoystickButton(xController, 4);
   public static Button xContElvaDown = new JoystickButton(xController, 2);
+
   
+
+  
+  public static Button xContBallOutput = new JoystickButton(xController, 1);
+  public static Button xContBallOutputRev = new JoystickButton(xController, 3);
 
   boolean xboxRightPressed;
 
@@ -73,7 +78,7 @@ public class Robot extends TimedRobot {
   public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
   
-  public double wheelDiameter = 5.98;
+  public double wheelDiameter = 7.56;
   
   private Spark leftDrive;
   private Spark rightDrive;
