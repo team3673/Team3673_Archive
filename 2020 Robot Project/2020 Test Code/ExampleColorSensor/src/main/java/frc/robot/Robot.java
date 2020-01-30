@@ -61,9 +61,12 @@ public class Robot extends TimedRobot {
   public static Button xContElvaUp = new JoystickButton(xController, 4);
   public static Button xContElvaDown = new JoystickButton(xController, 2);
 
-  
+  private JoystickButton lampRedButton; 
+  private JoystickButton lampGreenButton;
+  private JoystickButton lampBlueButton;
+  private JoystickButton lampHighButton;
+  private JoystickButton lampLowButton;
 
-  
   public static Button xContBallOutput = new JoystickButton(xController, 1);
   public static Button xContBallOutputRev = new JoystickButton(xController, 3);
 
@@ -98,8 +101,15 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
 
-    m_leftStick = new Joystick(1);
-    m_rightStick = new Joystick(2);
+    m_leftStick = new Joystick(0);
+    m_rightStick = new Joystick(1);
+
+   lampRedButton = new JoystickButton(m_leftStick, 7);
+   lampGreenButton = new JoystickButton(m_leftStick, 6);
+   lampBlueButton = new JoystickButton(m_leftStick, 5);
+   lampHighButton = new JoystickButton(m_leftStick, 8);
+   lampLowButton = new JoystickButton(m_leftStick, 9);
+
 
     elvaLift = new Spark(7);
 
@@ -136,9 +146,8 @@ public class Robot extends TimedRobot {
     m_colorMatcher.addColorMatch(kYellowTarget); 
 
     pixy.init();
-    pixy.setLamp((byte) 1, (byte) 1);
-    pixy.setLED(0, 255,0);
-
+   // pixy.setLamp((byte) 0, (byte) 1);
+    //pixy.setLED(255,0,0);
 
   }
 
@@ -284,7 +293,36 @@ Shuffleboard.getTab("Colors")
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
-    
-    
+
+    byte lampHigh = 0;
+    byte lampLow = 0;
+    int lampRed = 0;
+    int lampGreen = 0;
+    int lampBlue = 0;
+
+    if (lampRedButton.get()) {
+      lampRed = 255;
+    }
+
+    if (lampGreenButton.get()) {
+      lampGreen = 255;
+    }
+
+    if (lampBlueButton.get()) {
+      lampBlue = 255;
+    }
+
+    if (lampHighButton.get()) {
+      lampHigh = 1;
+    }
+
+    if (lampLowButton.get()) {
+      lampLow = 1;
+    }
+    //pixy.init();
+    pixy.setLamp(lampHigh, lampLow);
+    pixy.setLED(lampRed,lampGreen,lampBlue);
+
+
   }
 }
