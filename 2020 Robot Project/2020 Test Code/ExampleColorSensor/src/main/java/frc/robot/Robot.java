@@ -36,10 +36,13 @@ public class Robot extends TimedRobot {
   private Joystick m_leftStick;
   private Joystick m_rightStick;
 
+  //not going to be added to the new code (next years code) 
   Pixy2 pixy = Pixy2.createInstance(new SPILink());
 
+  //auto distance 
   private int autoDistance; 
 
+  //color sensor 
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
@@ -47,13 +50,13 @@ public class Robot extends TimedRobot {
   private final ColorMatch m_colorMatcher = new ColorMatch();
 
   public Spark colorWheel = new Spark(6);
-
+ 
   private final Color kBlueTarget = ColorMatch.makeColor(0.143, 0.427, 0.429);
   private final Color kGreenTarget = ColorMatch.makeColor(0.197, 0.561, 0.240);
   private final Color kRedTarget = ColorMatch.makeColor(0.561, 0.232, 0.114);
   private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 
-
+//xbox buttons
   public static XboxController xController = new XboxController(0);
   public static Button xContRightTrigger = new JoystickButton(xController, 8);
   public static Button xContLeftTrigger = new JoystickButton(xController, 7);
@@ -61,11 +64,16 @@ public class Robot extends TimedRobot {
   public static Button xContElvaUp = new JoystickButton(xController, 4);
   public static Button xContElvaDown = new JoystickButton(xController, 2);
 
+  //test pixy2 code not going to be added to new code 
   private JoystickButton lampRedButton; 
   private JoystickButton lampGreenButton;
   private JoystickButton lampBlueButton;
   private JoystickButton lampHighButton;
   private JoystickButton lampLowButton;
+
+  //xbox buttons 
+  private JoystickButton intakePower;
+  private JoystickButton dislodgePower;
 
   public static Button xContBallOutput = new JoystickButton(xController, 1);
   public static Button xContBallOutputRev = new JoystickButton(xController, 3);
@@ -77,25 +85,39 @@ public class Robot extends TimedRobot {
   boolean xboxElvaUp;
 
   boolean xboxElvaDown;
+
+  boolean intakeButton;
+
+  boolean dislodgeButton;
+
+  boolean outPutButton;
+
+  boolean outPutRevButton;
+
+
+
   //encoder shtuff
   public Encoder leftEncoder = new Encoder(6, 7, false, Encoder.EncodingType.k4X);
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
   
+  //final number for wheel diameter 
   public double wheelDiameter = 7.56;
   
+  //four motor drive train 
   private Spark leftDrive;
   private Spark rightDrive;
-  //test
   private Spark leftDriveTwo;
   private Spark rightDriveTwo;
   SpeedControllerGroup m_left;
   SpeedControllerGroup m_right;
 
+  //sparks will need to be organised 
   private Spark elvaLift;
 
   private Spark upperIntake;
   private Spark lowerIntake;
 
+  //auto code
   private boolean moveForward;
 
   @Override
@@ -104,47 +126,56 @@ public class Robot extends TimedRobot {
     m_leftStick = new Joystick(0);
     m_rightStick = new Joystick(1);
 
+    //pixy2 tests don't add to new code
    lampRedButton = new JoystickButton(m_leftStick, 7);
    lampGreenButton = new JoystickButton(m_leftStick, 6);
    lampBlueButton = new JoystickButton(m_leftStick, 5);
    lampHighButton = new JoystickButton(m_leftStick, 8);
    lampLowButton = new JoystickButton(m_leftStick, 9);
 
+   //power cell stuff
+   intakePower = new JoystickButton(m_rightStick, 1);
+   dislodgePower = new JoystickButton(m_leftStick, 1);
 
+   //once again cleaning up code for sparks needs to happen 
     elvaLift = new Spark(7);
 
     leftDrive = new Spark(0);
     leftDrive.setInverted(true);
 
-    //test
     leftDriveTwo = new Spark(1);
     leftDriveTwo.setInverted(true);
 
+    //four motor drive train
     m_left = new SpeedControllerGroup(leftDrive, leftDriveTwo);
 
+    //sparks
     rightDrive = new Spark(3);
     rightDrive.setInverted(true);
 
-    //test
     rightDriveTwo = new Spark(2);
     rightDriveTwo.setInverted(true);
 
+    //four motor drive train
     m_right = new SpeedControllerGroup(rightDrive, rightDriveTwo);
 
+    //auto stuff 
     rightEncoder.setReverseDirection(true);
 
 
     m_myRobot = new DifferentialDrive(m_left, m_right);
 
+    //spark clean up
     upperIntake = new Spark(4);
 
     lowerIntake = new Spark(5);
-
+//color sensor code
     m_colorMatcher.addColorMatch(kBlueTarget);
     m_colorMatcher.addColorMatch(kGreenTarget);
     m_colorMatcher.addColorMatch(kRedTarget);
     m_colorMatcher.addColorMatch(kYellowTarget); 
 
+    //pixy2 code don't add to new code
     pixy.init();
    // pixy.setLamp((byte) 0, (byte) 1);
     //pixy.setLED(255,0,0);
@@ -168,9 +199,7 @@ public class Robot extends TimedRobot {
   }
   public void autonomousPeriodic() {
 
-   // leftDrive.set(0.4);
-
-    //rightDrive.set(0.4);
+  
     if (moveForward){
       m_left.set(-0.5);
       m_right.set(0.5);
@@ -183,7 +212,7 @@ public class Robot extends TimedRobot {
     
     }
     
-
+//probably won't add to new code
     SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
     SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
 
@@ -198,8 +227,10 @@ public class Robot extends TimedRobot {
 
     final double IR = m_colorSensor.getIR();
 
+    //get rid of most likely 
     SmartDashboard.putNumber("POV", xController.getPOV());
 
+    //don't know what to put at the moment. Will decide later if it needs to be deleted 
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
@@ -207,6 +238,7 @@ public class Robot extends TimedRobot {
 
     final int proximity = m_colorSensor.getProximity();
 
+    //keep
     SmartDashboard.putNumber("Proximity", proximity);
 
     final String colorString;
@@ -220,9 +252,16 @@ public class Robot extends TimedRobot {
     xboxRightPressed = xContRightTrigger.get();
     xboxLeftPressed = xContLeftTrigger.get();
 
+
     xboxElvaUp = xContElvaUp.get();
     xboxElvaDown = xContElvaDown.get();
-    
+
+    intakeButton = intakePower.get();
+    dislodgeButton = dislodgePower.get();
+
+    outPutButton = xContBallOutput.get();
+    outPutRevButton = xContBallOutputRev.get();
+
     if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheel.set(0.0);
     } else if (xboxLeftPressed == true) {
@@ -243,7 +282,24 @@ public class Robot extends TimedRobot {
       elvaLift.set(0.0);
     }
 
+    if (intakeButton == true) {
+      lowerIntake.set(0.3);
+    }
     
+    if (dislodgeButton == true) {
+      lowerIntake.set(-0.3);
+    }
+
+    if (outPutButton == true) {
+      upperIntake.set(0.5);
+      lowerIntake.set(-0.5);
+    }
+
+    if (outPutRevButton == true) {
+      upperIntake.set(-0.5);
+    }
+
+
     if (match.color == kBlueTarget) {
       colorString = "Blue";
       booleanBlue = true;
@@ -260,11 +316,13 @@ public class Robot extends TimedRobot {
       colorString = "Unknown";
     }
     
+    //keep (color block code)
     SmartDashboard.putBoolean("isRed", booleanRed);
     SmartDashboard.putBoolean("isYellow", booleanYellow);
     SmartDashboard.putBoolean("isBlue", booleanBlue);
     SmartDashboard.putBoolean("isGreen", booleanGreen);
 
+    //get rid of most likely 
     SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
     SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
    /* SmartDashboard.putBoolean("XboxRightTrigger", XboxRightPressed);
@@ -288,12 +346,14 @@ Shuffleboard.getTab("Colors")
   */
   //automatically changes properties for color block
     
+  //keep
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
 
+    //pixy2 code do not add to new code
     byte lampHigh = 0;
     byte lampLow = 0;
     int lampRed = 0;
