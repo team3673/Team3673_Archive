@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+//import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import io.github.pseudoresonance.pixy2api.Pixy2;
@@ -22,6 +23,7 @@ import io.github.pseudoresonance.pixy2api.links.SPILink;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
+import edu.wpi.first.wpilibj.DriverStation;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
@@ -36,7 +38,7 @@ public class Robot extends TimedRobot {
   private Joystick m_leftStick;
   private Joystick m_rightStick;
 
-  //not going to be added to the new code (next years code) 
+  //pixy shtuff 
   Pixy2 pixy = Pixy2.createInstance(new SPILink());
 
   //auto distance 
@@ -112,7 +114,7 @@ public class Robot extends TimedRobot {
   SpeedControllerGroup m_right;
 
   //sparks will need to be organised 
-  private Spark elvaLift;
+  public Spark elvaLift;
 
   private Spark upperIntake;
   private Spark lowerIntake;
@@ -120,11 +122,16 @@ public class Robot extends TimedRobot {
   //auto code
   private boolean moveForward;
 
+  //private int autoMode = 0;
+
+  //private SendableChooser autoCommand;
+	//SendableChooser autoChooser;
+
   @Override
   public void robotInit() {
 
-    m_leftStick = new Joystick(0);
-    m_rightStick = new Joystick(1);
+    m_leftStick = new Joystick(1);
+    m_rightStick = new Joystick(2);
 
     //pixy2 tests don't add to new code
    lampRedButton = new JoystickButton(m_leftStick, 7);
@@ -180,6 +187,15 @@ public class Robot extends TimedRobot {
    // pixy.setLamp((byte) 0, (byte) 1);
     //pixy.setLED(255,0,0);
 
+    /*
+    autoChooser = new SendableChooser();
+		autoChooser.addDefault("Baseline", 1);
+		autoChooser.addObject("Don't use auto", 2);
+    autoChooser.addObject("Use auto", 3);
+    
+    SmartDashboard.putData("Autonomous Selector", autoChooser);
+    */
+
   }
 
   public void autonomousInit() {
@@ -196,6 +212,9 @@ public class Robot extends TimedRobot {
     rightEncoder.setDistancePerPulse(wheelDiameter * Math.PI / 2048);
 
     moveForward = true;
+
+    //autoMode = (int) autoChooser.getSelected();
+
   }
   public void autonomousPeriodic() {
 
@@ -236,6 +255,39 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
 
+    /*
+    String gameData;
+    gameData = DriverStation.getInstance().getGameSpecificMessage();
+    if(gameData.length() > 0)
+    {
+      switch (gameData.charAt(0))
+      {
+        case 'B' :
+          //Blue case code
+          System.out.println("Blue");
+          break;
+        case 'G' :
+          //Green case code
+          System.out.println("Green");
+          break;
+        case 'R' :
+          //Red case code
+          System.out.println("Red");
+          break;
+        case 'Y' :
+          //Yellow case code
+          System.out.println("Yellow");
+          break;
+        default :
+          //This is corrupt data
+          System.out.println("False");
+          break;
+      }
+    } else {
+      //Code for no data received yet
+    }
+    */
+
     final int proximity = m_colorSensor.getProximity();
 
     //keep
@@ -265,9 +317,9 @@ public class Robot extends TimedRobot {
     if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheel.set(0.0);
     } else if (xboxLeftPressed == true) {
-      colorWheel.set(-0.2);
+      colorWheel.set(-0.3);
     } else if (xboxRightPressed == true) {
-      colorWheel.set(0.2);
+      colorWheel.set(0.3);
     }else {
       colorWheel.set(0.0);
     }
@@ -281,22 +333,22 @@ public class Robot extends TimedRobot {
     }else {
       elvaLift.set(0.0);
     }
-
+      
     if (intakeButton == true) {
-      lowerIntake.set(0.3);
+      lowerIntake.set(0.4);
     }
     
     if (dislodgeButton == true) {
-      lowerIntake.set(-0.3);
+      lowerIntake.set(-0.4);
     }
 
     if (outPutButton == true) {
-      upperIntake.set(0.5);
-      lowerIntake.set(-0.5);
+      upperIntake.set(0.4);
+      lowerIntake.set(-0.4);
     }
 
     if (outPutRevButton == true) {
-      upperIntake.set(-0.5);
+      upperIntake.set(-0.4);
     }
 
 
