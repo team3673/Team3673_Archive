@@ -23,11 +23,13 @@ import io.github.pseudoresonance.pixy2api.links.SPILink;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
-import edu.wpi.first.wpilibj.DriverStation;
+//import edu.wpi.first.wpilibj.DriverStation;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.buttons.Button;
+
+//import edu.wpi.first.cameraserver.CameraServer;
 
 /**
  * This is a demo program showing the use of the RobotDrive class, specifically
@@ -66,7 +68,7 @@ public class Robot extends TimedRobot {
   public static Button xContElvaUp = new JoystickButton(xController, 4);
   public static Button xContElvaDown = new JoystickButton(xController, 2);
 
-  //test pixy2 code not going to be added to new code 
+  //test pixy2 code 
   private JoystickButton lampRedButton; 
   private JoystickButton lampGreenButton;
   private JoystickButton lampBlueButton;
@@ -95,7 +97,6 @@ public class Robot extends TimedRobot {
   boolean outPutButton;
 
   boolean outPutRevButton;
-
 
 
   //encoder shtuff
@@ -304,7 +305,6 @@ public class Robot extends TimedRobot {
     xboxRightPressed = xContRightTrigger.get();
     xboxLeftPressed = xContLeftTrigger.get();
 
-
     xboxElvaUp = xContElvaUp.get();
     xboxElvaDown = xContElvaDown.get();
 
@@ -335,22 +335,33 @@ public class Robot extends TimedRobot {
     }
       
     if (intakeButton == true) {
-      lowerIntake.set(0.4);
+      lowerIntake.set(0.5);
+      upperIntake.set(-0.5);
+    } else {
+      lowerIntake.set(0.0);
+      upperIntake.set(0.0);
     }
     
     if (dislodgeButton == true) {
-      lowerIntake.set(-0.4);
+      lowerIntake.set(0.5);
+    } else {
+      lowerIntake.set(0.0);
     }
 
     if (outPutButton == true) {
-      upperIntake.set(0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(0.5);
+      lowerIntake.set(-0.5);
+    } else {
+      upperIntake.set(0.0);
+      lowerIntake.set(0.0);
     }
 
     if (outPutRevButton == true) {
-      upperIntake.set(-0.4);
+      upperIntake.set(-0.5);
+    } else {
+      upperIntake.set(0.0);
     }
-
+    
 
     if (match.color == kBlueTarget) {
       colorString = "Blue";
