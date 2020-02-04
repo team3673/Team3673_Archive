@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.buttons.Button;
 
-//import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cameraserver.CameraServer;
 
 /**
  * This is a demo program showing the use of the RobotDrive class, specifically
@@ -197,6 +197,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Autonomous Selector", autoChooser);
     */
 
+    CameraServer.getInstance().startAutomaticCapture();
+
   }
 
   public void autonomousInit() {
@@ -333,33 +335,23 @@ public class Robot extends TimedRobot {
     }else {
       elvaLift.set(0.0);
     }
-      
-    if (intakeButton == true) {
-      lowerIntake.set(0.5);
-      upperIntake.set(-0.5);
-    } else {
-      lowerIntake.set(0.0);
-      upperIntake.set(0.0);
-    }
+     
     
-    if (dislodgeButton == true) {
-      lowerIntake.set(0.5);
-    } else {
+    if (intakeButton == true) {
+      upperIntake.set(0.3);
+      lowerIntake.set(-0.3);
+    } else if (dislodgeButton == true) {
+      upperIntake.set(0.0);
+      lowerIntake.set(-0.3);
+    } else if (outPutRevButton == true) {
+      upperIntake.set(-0.3);
       lowerIntake.set(0.0);
-    }
-
-    if (outPutButton == true) {
-      upperIntake.set(0.5);
-      lowerIntake.set(-0.5);
+    } else if (outPutButton == true) {
+      upperIntake.set(-0.3);
+      lowerIntake.set(0.3);
     } else {
       upperIntake.set(0.0);
       lowerIntake.set(0.0);
-    }
-
-    if (outPutRevButton == true) {
-      upperIntake.set(-0.5);
-    } else {
-      upperIntake.set(0.0);
     }
     
 
