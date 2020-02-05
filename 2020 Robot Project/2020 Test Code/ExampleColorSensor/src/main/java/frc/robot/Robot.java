@@ -23,7 +23,7 @@ import io.github.pseudoresonance.pixy2api.links.SPILink;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
-//import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
   private JoystickButton dislodgePower;
 
   public static Button xContBallOutput = new JoystickButton(xController, 1);
-  public static Button xContBallOutputRev = new JoystickButton(xController, 3);
+  //public static Button xContBallOutputRev = new JoystickButton(xController, 3);
 
   boolean xboxRightPressed;
 
@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
 
   boolean outPutButton;
 
-  boolean outPutRevButton;
+ // boolean outPutRevButton;
 
 
   //encoder shtuff
@@ -125,8 +125,10 @@ public class Robot extends TimedRobot {
 
   //private int autoMode = 0;
 
-  //private SendableChooser autoCommand;
-	//SendableChooser autoChooser;
+  /*
+  private SendableChooser autoCommand;
+	SendableChooser autoChooser;
+  */
 
   @Override
   public void robotInit() {
@@ -197,6 +199,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Autonomous Selector", autoChooser);
     */
 
+    //life cam code lol
     CameraServer.getInstance().startAutomaticCapture();
 
   }
@@ -221,7 +224,6 @@ public class Robot extends TimedRobot {
   }
   public void autonomousPeriodic() {
 
-  
     if (moveForward){
       m_left.set(-0.5);
       m_right.set(0.5);
@@ -229,9 +231,8 @@ public class Robot extends TimedRobot {
         m_left.set(0.0);
         m_right.set(0.0);
         moveForward = false;
-      }  
-      
-    
+      }
+
     }
     
 //probably won't add to new code
@@ -258,7 +259,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
 
-    /*
+    
     String gameData;
     gameData = DriverStation.getInstance().getGameSpecificMessage();
     if(gameData.length() > 0)
@@ -289,7 +290,7 @@ public class Robot extends TimedRobot {
     } else {
       //Code for no data received yet
     }
-    */
+    
 
     final int proximity = m_colorSensor.getProximity();
 
@@ -314,7 +315,7 @@ public class Robot extends TimedRobot {
     dislodgeButton = dislodgePower.get();
 
     outPutButton = xContBallOutput.get();
-    outPutRevButton = xContBallOutputRev.get();
+    //outPutRevButton = xContBallOutputRev.get();
 
     if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheel.set(0.0);
@@ -338,17 +339,17 @@ public class Robot extends TimedRobot {
      
     
     if (intakeButton == true) {
-      upperIntake.set(0.3);
-      lowerIntake.set(-0.3);
+      upperIntake.set(0.4);
+      lowerIntake.set(-0.4);
     } else if (dislodgeButton == true) {
-      upperIntake.set(0.0);
-      lowerIntake.set(-0.3);
-    } else if (outPutRevButton == true) {
+      upperIntake.set(-0.4);
+      lowerIntake.set(-0.4);
+    /*} else if (outPutRevButton == true) {
       upperIntake.set(-0.3);
-      lowerIntake.set(0.0);
+      lowerIntake.set(0.0);*/
     } else if (outPutButton == true) {
-      upperIntake.set(-0.3);
-      lowerIntake.set(0.3);
+      upperIntake.set(-0.4);
+      lowerIntake.set(-0.4);
     } else {
       upperIntake.set(0.0);
       lowerIntake.set(0.0);
@@ -380,25 +381,12 @@ public class Robot extends TimedRobot {
     //get rid of most likely 
     SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
     SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
-   /* SmartDashboard.putBoolean("XboxRightTrigger", XboxRightPressed);
-    SmartDashboard.putBoolean("XboxLeftTrigger", XboxLeftPressed);*/
+   
 
 
   
-    /*
-    Shuffleboard.getTab("Colors")
-  .addBoolean("isRed", () -> match.color == kRedTarget)
-  .withProperties(Map.of("colorWhenTrue", "red"));
-Shuffleboard.getTab("Colors")
-  .addBoolean("isYellow", () -> match.color == kYellowTarget)
-  .withProperties(Map.of("colorWhenTrue", "yellow"));
-Shuffleboard.getTab("Colors")
-  .addBoolean("isBlue", () -> match.color == kBlueTarget)
-  .withProperties(Map.of("colorWhenTrue", "blue"));
-Shuffleboard.getTab("Colors")
-  .addBoolean("isGreen", () -> match.color == kGreenTarget)
-  .withProperties(Map.of("colorWhenTrue", "green"));
-  */
+    
+  
   //automatically changes properties for color block
     
   //keep
