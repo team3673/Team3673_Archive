@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-//import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import io.github.pseudoresonance.pixy2api.Pixy2;
@@ -61,12 +61,16 @@ public class Robot extends TimedRobot {
   private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 
 //xbox buttons
-  public static XboxController xController = new XboxController(0);
-  public static Button xContRightTrigger = new JoystickButton(xController, 8);
-  public static Button xContLeftTrigger = new JoystickButton(xController, 7);
+  private static XboxController xController = new XboxController(0);
+  private static Button xContRightTrigger = new JoystickButton(xController, 8);
+  private static Button xContLeftTrigger = new JoystickButton(xController, 7);
 
-  public static Button xContElvaUp = new JoystickButton(xController, 4);
-  public static Button xContElvaDown = new JoystickButton(xController, 2);
+  private static Button xContElvaUp = new JoystickButton(xController, 4);
+  private static Button xContElvaDown = new JoystickButton(xController, 2);
+
+  private static Button autoColorSpin = new JoystickButton(xController, 10);
+
+
 
   //test pixy2 code 
   private JoystickButton lampRedButton; 
@@ -96,6 +100,7 @@ public class Robot extends TimedRobot {
 
   boolean outPutButton;
 
+  
  // boolean outPutRevButton;
 
 
@@ -104,7 +109,7 @@ public class Robot extends TimedRobot {
   public Encoder rightEncoder = new Encoder(8, 9, false, Encoder.EncodingType.k4X);
   
   //final number for wheel diameter 
-  public double wheelDiameter = 7.56;
+  private double wheelDiameter = 7.56;
   
   //four motor drive train 
   private Spark leftDrive;
@@ -123,12 +128,14 @@ public class Robot extends TimedRobot {
   //auto code
   private boolean moveForward;
 
-  //private int autoMode = 0;
+  private int autoMode = 0;
 
-  /*
-  private SendableChooser autoCommand;
-	SendableChooser autoChooser;
-  */
+  private double colorWheelSpeed;
+
+  
+  private SendableChooser<Integer>autoCommand;
+	
+  
 
   @Override
   public void robotInit() {
@@ -190,18 +197,17 @@ public class Robot extends TimedRobot {
    // pixy.setLamp((byte) 0, (byte) 1);
     //pixy.setLED(255,0,0);
 
-    /*
-    autoChooser = new SendableChooser();
-		autoChooser.addDefault("Baseline", 1);
-		autoChooser.addObject("Don't use auto", 2);
-    autoChooser.addObject("Use auto", 3);
     
-    SmartDashboard.putData("Autonomous Selector", autoChooser);
-    */
+    autoCommand = new SendableChooser<Integer>();
+		autoCommand.setDefaultOption("Baseline", 1);
+		autoCommand.addOption("Don't use auto", 2);
+    autoCommand.addOption("Use auto", 3);
+    
+    SmartDashboard.putData("Autonomous Selector", autoCommand);
+    
 
     //life cam code lol
     CameraServer.getInstance().startAutomaticCapture();
-
   }
 
   public void autonomousInit() {
@@ -219,22 +225,30 @@ public class Robot extends TimedRobot {
 
     moveForward = true;
 
-    //autoMode = (int) autoChooser.getSelected();
+    autoMode = (int) autoCommand.getSelected();
 
   }
   public void autonomousPeriodic() {
 
+    double leftSpeed = 0.0;
+    double rightSpeed = 0.0;
+
     if (moveForward){
-      m_left.set(-0.5);
-      m_right.set(0.5);
+      leftSpeed = -0.3;
+      rightSpeed = 0.3;
       if (leftEncoder.getDistance() > autoDistance) {
-        m_left.set(0.0);
-        m_right.set(0.0);
+        leftSpeed = 0.0;
+        rightSpeed = 0.0;
         moveForward = false;
       }
 
+      SmartDashboard.putNumber("autoMode", autoMode);
+
     }
-    
+
+    m_left.set(leftSpeed);
+    m_right.set(rightSpeed);
+
 //probably won't add to new code
     SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
     SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
@@ -258,38 +272,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
-
-    
-    String gameData;
-    gameData = DriverStation.getInstance().getGameSpecificMessage();
-    if(gameData.length() > 0)
-    {
-      switch (gameData.charAt(0))
-      {
-        case 'B' :
-          //Blue case code
-          System.out.println("Blue");
-          break;
-        case 'G' :
-          //Green case code
-          System.out.println("Green");
-          break;
-        case 'R' :
-          //Red case code
-          System.out.println("Red");
-          break;
-        case 'Y' :
-          //Yellow case code
-          System.out.println("Yellow");
-          break;
-        default :
-          //This is corrupt data
-          System.out.println("False");
-          break;
-      }
-    } else {
-      //Code for no data received yet
-    }
     
 
     final int proximity = m_colorSensor.getProximity();
@@ -304,6 +286,9 @@ public class Robot extends TimedRobot {
     boolean booleanGreen = false;
     boolean booleanBlue = false;
     boolean booleanYellow = false;
+
+    
+    colorWheelSpeed = 0.0;
     
     xboxRightPressed = xContRightTrigger.get();
     xboxLeftPressed = xContLeftTrigger.get();
@@ -318,13 +303,13 @@ public class Robot extends TimedRobot {
     //outPutRevButton = xContBallOutputRev.get();
 
     if (xboxRightPressed == true && xboxLeftPressed == true) {
-      colorWheel.set(0.0);
+      colorWheelSpeed = 0.0;
     } else if (xboxLeftPressed == true) {
-      colorWheel.set(-0.3);
+      colorWheelSpeed = -0.3;
     } else if (xboxRightPressed == true) {
-      colorWheel.set(0.3);
+      colorWheelSpeed = 0.3;
     }else {
-      colorWheel.set(0.0);
+      colorWheelSpeed = 0.0;
     }
 
     if (xboxElvaUp == true && xboxElvaDown == true) {
@@ -339,17 +324,17 @@ public class Robot extends TimedRobot {
      
     
     if (intakeButton == true) {
-      upperIntake.set(0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(0.45);
+      lowerIntake.set(-0.45);
     } else if (dislodgeButton == true) {
-      upperIntake.set(-0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(-0.45);
+      lowerIntake.set(-0.45);
     /*} else if (outPutRevButton == true) {
       upperIntake.set(-0.3);
       lowerIntake.set(0.0);*/
     } else if (outPutButton == true) {
-      upperIntake.set(-0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(-0.45);
+      lowerIntake.set(-0.45);
     } else {
       upperIntake.set(0.0);
       lowerIntake.set(0.0);
@@ -381,6 +366,8 @@ public class Robot extends TimedRobot {
     //get rid of most likely 
     SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
     SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
+
+    
    
 
 
@@ -389,6 +376,47 @@ public class Robot extends TimedRobot {
   
   //automatically changes properties for color block
     
+
+  
+    String gameData = DriverStation.getInstance().getGameSpecificMessage();
+    if(gameData.length() > 0)
+    {
+      if (autoColorSpin.get()) {
+        colorWheelSpeed = 0.2;
+      } 
+      switch (gameData.charAt(0))
+      {
+        case 'B' :
+          //Blue case code, feild wants blue stop at red
+          if (booleanRed == true) {
+            colorWheelSpeed = 0.0;
+          }
+          break;
+        case 'G' :
+          //Green case code feild wants green stop at yellow
+          if (booleanYellow == true) {
+            colorWheelSpeed = 0.0;
+          }
+          break;
+        case 'R' :
+          //Red case code feild wants red stop at blue
+          if (booleanBlue == true) {
+            colorWheelSpeed = 0.0;
+          }
+          break;
+        case 'Y' :
+          //Yellow case code feild wants yellow stop at green
+          if (booleanGreen == true) {
+            colorWheelSpeed = 0.0;
+          }
+          break;
+        default :
+          //This is corrupt data
+          
+          break;
+      }
+    } 
+
   //keep
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
@@ -427,5 +455,6 @@ public class Robot extends TimedRobot {
     pixy.setLED(lampRed,lampGreen,lampBlue);
 
 
+    colorWheel.set(colorWheelSpeed);
   }
 }
