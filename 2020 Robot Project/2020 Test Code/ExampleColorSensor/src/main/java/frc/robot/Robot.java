@@ -199,9 +199,9 @@ public class Robot extends TimedRobot {
 
     
     autoCommand = new SendableChooser<Integer>();
-		autoCommand.setDefaultOption("Baseline", 1);
+		autoCommand.setDefaultOption("Past Start Line", 1);
 		autoCommand.addOption("Don't use auto", 2);
-    autoCommand.addOption("Use auto", 3);
+    autoCommand.addOption("Powercell Input", 3);
     
     SmartDashboard.putData("Autonomous Selector", autoCommand);
     
@@ -248,6 +248,22 @@ public class Robot extends TimedRobot {
 
     m_left.set(leftSpeed);
     m_right.set(rightSpeed);
+
+    switch(autoMode) {
+
+      case '1' :
+      leftSpeed = -0.3;
+      rightSpeed = 0.3;
+
+      case '2' :
+      leftSpeed = 0.0;
+      rightSpeed = 0.0;
+
+      case '3' :
+      
+
+    }
+
 
 //probably won't add to new code
     SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
