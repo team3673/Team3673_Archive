@@ -100,6 +100,9 @@ public class Robot extends TimedRobot {
 
   boolean outPutButton;
 
+  boolean readyToShoot;
+
+  long startTime;
   
  // boolean outPutRevButton;
 
@@ -126,7 +129,7 @@ public class Robot extends TimedRobot {
   private Spark lowerIntake;
 
   //auto code
-  private boolean moveForward;
+  //private boolean moveForward;
 
   private int autoMode = 0;
 
@@ -177,7 +180,7 @@ public class Robot extends TimedRobot {
     m_right = new SpeedControllerGroup(rightDrive, rightDriveTwo);
 
     //auto stuff 
-    rightEncoder.setReverseDirection(true);
+    leftEncoder.setReverseDirection(true);
 
 
     m_myRobot = new DifferentialDrive(m_left, m_right);
@@ -199,9 +202,9 @@ public class Robot extends TimedRobot {
 
     
     autoCommand = new SendableChooser<Integer>();
-		autoCommand.setDefaultOption("Past Start Line", 1);
-		autoCommand.addOption("Don't use auto", 2);
-    autoCommand.addOption("Powercell Input", 3);
+		autoCommand.setDefaultOption("Move to low goal", 1);
+		autoCommand.addOption("Move to low goal and shoot", 2);
+    autoCommand.addOption("No auto", 3);
     
     SmartDashboard.putData("Autonomous Selector", autoCommand);
     
@@ -213,6 +216,8 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
 
     //distance from init line to alliance wall in inches minus Length of robot (120-34) 86
+    m_myRobot.setSafetyEnabled(false);
+
     autoDistance = 40;
     
     leftEncoder.reset();
@@ -223,7 +228,9 @@ public class Robot extends TimedRobot {
 
     rightEncoder.setDistancePerPulse(wheelDiameter * Math.PI / 2048);
 
-    moveForward = true;
+    //moveForward = true;
+
+    readyToShoot = false;
 
     autoMode = (int) autoCommand.getSelected();
 
@@ -233,6 +240,7 @@ public class Robot extends TimedRobot {
     double leftSpeed = 0.0;
     double rightSpeed = 0.0;
 
+    /*
     if (moveForward){
       leftSpeed = -0.3;
       rightSpeed = 0.3;
@@ -240,30 +248,55 @@ public class Robot extends TimedRobot {
         leftSpeed = 0.0;
         rightSpeed = 0.0;
         moveForward = false;
-      }
-
-      SmartDashboard.putNumber("autoMode", autoMode);
 
     }
+    */
 
-    m_left.set(leftSpeed);
-    m_right.set(rightSpeed);
+    SmartDashboard.putNumber("autoMode", autoMode);
+
 
     switch(autoMode) {
 
-      case '1' :
-      leftSpeed = -0.3;
-      rightSpeed = 0.3;
+      case 1 :
+      //Driving 40 inches then stopping
+      //System.out.println(autoMode);
+        if (leftEncoder.getDistance() < autoDistance) {
+          leftSpeed = -0.3;
+          rightSpeed = 0.3;
+        } else {
+          leftSpeed = 0.0;
+          rightSpeed = 0.0;
+        }
+        break;
+      case 2 :
+      //Drives forward 40 inches, stops and then shoots for five seconds
+        if (leftEncoder.getDistance() < autoDistance) {
+          leftSpeed = -0.3;
+          rightSpeed = 0.3;
+        } else { 
+          if (readyToShoot == false) {
+            startTime = System.currentTimeMillis();
+            leftSpeed = 0.0;
+            rightSpeed = 0.0;
+            readyToShoot = true;
+          }
+        } 
+        if (readyToShoot == true && System.currentTimeMillis() - startTime < 5000) {
+          upperIntake.set(-0.45);
+          lowerIntake.set(-0.45);
+        } else {
+          upperIntake.set(0.0);
+          lowerIntake.set(0.0);
+        }
+        break;
 
-      case '2' :
-      leftSpeed = 0.0;
-      rightSpeed = 0.0;
+      case 3 :
+      //Do nothing
 
-      case '3' :
-      
+      }
 
-    }
-
+      m_left.set(leftSpeed);
+      m_right.set(rightSpeed);
 
 //probably won't add to new code
     SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
@@ -271,6 +304,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
     SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
+  }
+
+   @Override
+  public void teleopInit() {
+    // TODO Auto-generated method stub
+    //super.teleopInit();
+    m_myRobot.setSafetyEnabled(true);
   }
   @Override
   public void teleopPeriodic() {
