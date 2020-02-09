@@ -46,6 +46,7 @@ public class Robot extends TimedRobot {
   //auto distance 
   private int autoDistance; 
 
+
   //color sensor 
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
@@ -196,9 +197,8 @@ public class Robot extends TimedRobot {
     m_colorMatcher.addColorMatch(kYellowTarget); 
 
     //pixy2 code don't add to new code
-    pixy.init();
-   // pixy.setLamp((byte) 0, (byte) 1);
-    //pixy.setLED(255,0,0);
+   
+   
 
     
     autoCommand = new SendableChooser<Integer>();
@@ -219,6 +219,7 @@ public class Robot extends TimedRobot {
     m_myRobot.setSafetyEnabled(false);
 
     autoDistance = 40;
+
     
     leftEncoder.reset();
 
@@ -269,7 +270,7 @@ public class Robot extends TimedRobot {
         }
         break;
       case 2 :
-      //Drives forward 40 inches, stops and then shoots for five seconds
+      //Drives forward 40 inches, stops and then shoots for three seconds
         if (leftEncoder.getDistance() < autoDistance) {
           leftSpeed = -0.3;
           rightSpeed = 0.3;
@@ -281,16 +282,18 @@ public class Robot extends TimedRobot {
             readyToShoot = true;
           }
         } 
-        if (readyToShoot == true && System.currentTimeMillis() - startTime < 5000) {
-          upperIntake.set(-0.45);
-          lowerIntake.set(-0.45);
+        if (readyToShoot == true && System.currentTimeMillis() - startTime < 3000) {
+          upperIntake.set(-0.35);
+          lowerIntake.set(-0.35);
         } else {
           upperIntake.set(0.0);
           lowerIntake.set(0.0);
-        }
-        break;
+          
+           break;
 
-      case 3 :
+           }
+
+           case 3 :
       //Do nothing
 
       }
@@ -414,10 +417,23 @@ public class Robot extends TimedRobot {
     }
     
     //keep (color block code)
-    SmartDashboard.putBoolean("isRed", booleanRed);
+    /*SmartDashboard.putBoolean("isRed", booleanRed);
     SmartDashboard.putBoolean("isYellow", booleanYellow);
     SmartDashboard.putBoolean("isBlue", booleanBlue);
-    SmartDashboard.putBoolean("isGreen", booleanGreen);
+    SmartDashboard.putBoolean("isGreen", booleanGreen);*/
+
+    if (booleanRed == true){
+      SmartDashboard.putBoolean("isRed", booleanRed);
+    } if (booleanBlue == true){
+      SmartDashboard.putBoolean("isBlue", booleanBlue);
+    } if (booleanYellow == true){
+      SmartDashboard.putBoolean("isYellow", booleanYellow);
+    } if (booleanGreen == true){
+      SmartDashboard.putBoolean("isGreen", booleanGreen);
+    } else {
+      // None
+    }
+
 
     //get rid of most likely 
     SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
@@ -506,11 +522,12 @@ public class Robot extends TimedRobot {
     if (lampLowButton.get()) {
       lampLow = 1;
     }
-    //pixy.init();
+    pixy.init();
     pixy.setLamp(lampHigh, lampLow);
     pixy.setLED(lampRed,lampGreen,lampBlue);
 
 
     colorWheel.set(colorWheelSpeed);
+    
   }
 }
