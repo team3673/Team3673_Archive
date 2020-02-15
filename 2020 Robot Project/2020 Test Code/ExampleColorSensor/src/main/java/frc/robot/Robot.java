@@ -110,12 +110,14 @@ public class Robot extends TimedRobot {
 
   boolean readyToShoot;
 
+  //boolean colorBlock = false;
+
   enum autoStateType {moveForward, shoot, moveBackward};
   autoStateType autoState;
 
   boolean haveGameData;
 
-  private final SuppliedValueWidget colorWidget = Shuffleboard.getTab("Color").addBoolean ("current color", ()-> haveGameData);
+  //private final SuppliedValueWidget colorWidget = Shuffleboard.getTab("Color").addBoolean ("current color", ()-> haveGameData);
 
 
   long startTime;
@@ -180,7 +182,7 @@ public class Robot extends TimedRobot {
 
     leftDrive = new Spark(0);
     leftDrive.setInverted(true);
-
+ 
     leftDriveTwo = new Spark(1);
     leftDriveTwo.setInverted(true);
 
@@ -274,7 +276,7 @@ public class Robot extends TimedRobot {
     }
     */
 
-    SmartDashboard.putNumber("autoMode", autoMode);
+    //SmartDashboard.putNumber("autoMode", autoMode);
 
 
     switch(autoMode) {
@@ -336,11 +338,11 @@ public class Robot extends TimedRobot {
       m_right.set(rightSpeed);
 
 //probably won't add to new code
-    SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
-    SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
+    //SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
+    //SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
 
-    SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
-    SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
+    //SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
+    //SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
   }
 
    @Override
@@ -358,13 +360,15 @@ public class Robot extends TimedRobot {
     final double IR = m_colorSensor.getIR();
 
     //get rid of most likely 
-    SmartDashboard.putNumber("POV", xController.getPOV());
+    //SmartDashboard.putNumber("POV", xController.getPOV());
 
     //don't know what to put at the moment. Will decide later if it needs to be deleted 
+    /*
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
+    */
     
 
     final int proximity = m_colorSensor.getProximity();
@@ -417,17 +421,17 @@ public class Robot extends TimedRobot {
      
     
     if (intakeButton == true) {
-      upperIntake.set(0.45);
-      lowerIntake.set(-0.45);
+      upperIntake.set(0.4);
+      lowerIntake.set(-0.4);
     } else if (dislodgeButton == true) {
-      upperIntake.set(-0.45);
-      lowerIntake.set(-0.45);
+      upperIntake.set(-0.4);
+      lowerIntake.set(-0.4);
     /*} else if (outPutRevButton == true) {
       upperIntake.set(-0.3);
       lowerIntake.set(0.0);*/
     } else if (outPutButton == true) {
-      upperIntake.set(-0.45);
-      lowerIntake.set(-0.45);
+      upperIntake.set(-0.4);
+      lowerIntake.set(-0.4);
     } else {
       upperIntake.set(0.0);
       lowerIntake.set(0.0);
@@ -436,19 +440,23 @@ public class Robot extends TimedRobot {
 
     if (match.color == kBlueTarget) {
       colorString = "Blue";
-      colorWidget.withProperties(Map.of("colorWhenTrue", kBlueTarget));
+      SmartDashboard.putBoolean("isBlue", booleanBlue);
+      //colorWidget.withProperties("colorWhenTrue", Blue);
       booleanBlue = true;
     } else if (match.color == kRedTarget) {
       colorString = "Red";
-      colorWidget.withProperties(Map.of("colorWhenTrue", kRedTarget));
+        SmartDashboard.putBoolean("isRed", booleanRed);
+     // colorWidget.withProperties(Map.of("colorWhenTrue", kRedTarget));
       booleanRed = true;
     } else if (match.color == kGreenTarget) {
       colorString = "Green";
-      colorWidget.withProperties(Map.of("colorWhenTrue", kGreenTarget));
+      SmartDashboard.putBoolean("isGreen", booleanGreen);
+     // colorWidget.withProperties(Map.of("colorWhenTrue", kGreenTarget));
       booleanGreen = true;
     } else if (match.color == kYellowTarget) {
       colorString = "Yellow";
-      colorWidget.withProperties(Map.of("colorWhenTrue", kYellowTarget));
+      SmartDashboard.putBoolean("isYellow", booleanYellow);
+     // colorWidget.withProperties(Map.of("colorWhenTrue", kYellowTarget));
       booleanYellow = true;
     } else {
       colorString = "Unknown";
@@ -466,8 +474,8 @@ public class Robot extends TimedRobot {
   
 
     //get rid of most likely 
-    SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
-    SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
+    //SmartDashboard.putBoolean("elvaUp", xboxElvaUp);
+   // SmartDashboard.putBoolean("elvaDown", xboxElvaDown );
 
     
    
@@ -520,11 +528,13 @@ public class Robot extends TimedRobot {
     } 
 
   //keep
+  /*
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
+    */
 
     //pixy2 code do not add to new code
     /*
