@@ -14,16 +14,16 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
+//import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+//import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+//import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import io.github.pseudoresonance.pixy2api.Pixy2;
 import io.github.pseudoresonance.pixy2api.links.SPILink;
 
-import java.util.Map;
+//import java.util.Map;
 
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
@@ -33,7 +33,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.buttons.Button;
-
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 
 /**
@@ -155,7 +155,9 @@ public class Robot extends TimedRobot {
 
   
   private SendableChooser<Integer>autoCommand;
-	
+  
+  UsbCamera Camera1; 
+  UsbCamera Camera2;
   
 
   @Override
@@ -229,7 +231,9 @@ public class Robot extends TimedRobot {
     
 
     //life cam code lol
-    CameraServer.getInstance().startAutomaticCapture();
+    Camera1 = CameraServer.getInstance().startAutomaticCapture(0);
+    Camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+
 
     haveGameData = false;
   }
@@ -284,7 +288,7 @@ public class Robot extends TimedRobot {
       case 1 :
       //Driving 40 inches then stopping
       //System.out.println(autoMode);
-        if (leftEncoder.getDistance() < autoDistance) {
+        if (rightEncoder.getDistance() < autoDistance) {
           leftSpeed = -0.3;
           rightSpeed = 0.3;
         } else {
@@ -298,7 +302,7 @@ public class Robot extends TimedRobot {
           leftSpeed = -0.3;
           rightSpeed = 0.3;
         
-          if (leftEncoder.getDistance() > autoDistance) {
+          if (rightEncoder.getDistance() > autoDistance) {
             startTime = System.currentTimeMillis();
             leftSpeed = 0.0;
             rightSpeed = 0.0;
@@ -317,7 +321,7 @@ public class Robot extends TimedRobot {
         if (autoState == autoStateType.moveBackward){
           leftSpeed = 0.3;
           rightSpeed = -0.3;
-          if (leftEncoder.getDistance() < -36.0){ //Length of the robot plus 2 inches 
+          if (rightEncoder.getDistance() < -36.0){ //Length of the robot plus 2 inches 
             leftSpeed = 0.0;
             rightSpeed = 0.0;
           }
@@ -339,10 +343,10 @@ public class Robot extends TimedRobot {
 
 //probably won't add to new code
     //SmartDashboard.putNumber("leftEncoder", leftEncoder.getDistance());
-    //SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
+    SmartDashboard.putNumber("rightEncoder", rightEncoder.getDistance());
 
     //SmartDashboard.putNumber("leftEncoderTicks", leftEncoder.get());
-    //SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
+    SmartDashboard.putNumber("rightEncoderTicks", rightEncoder.get());
   }
 
    @Override
@@ -363,12 +367,12 @@ public class Robot extends TimedRobot {
     //SmartDashboard.putNumber("POV", xController.getPOV());
 
     //don't know what to put at the moment. Will decide later if it needs to be deleted 
-    /*
+    
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
-    */
+    
     
 
     final int proximity = m_colorSensor.getProximity();
@@ -430,8 +434,8 @@ public class Robot extends TimedRobot {
       upperIntake.set(-0.3);
       lowerIntake.set(0.0);*/
     } else if (outPutButton == true) {
-      upperIntake.set(-0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(-0.5);
+      lowerIntake.set(-0.5);
     } else {
       upperIntake.set(0.0);
       lowerIntake.set(0.0);
@@ -465,6 +469,7 @@ public class Robot extends TimedRobot {
     //colorWidget.withProperties(Map.of("colorWhenTrue", match.color));
     
     //keep (color block code)
+    
     SmartDashboard.putBoolean("isRed", booleanRed);
     SmartDashboard.putBoolean("isYellow", booleanYellow);
     SmartDashboard.putBoolean("isBlue", booleanBlue);
@@ -528,13 +533,13 @@ public class Robot extends TimedRobot {
     } 
 
   //keep
-  /*
+  
     SmartDashboard.putNumber("Red", detectedColor.red);
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
-    */
+    
 
     //pixy2 code do not add to new code
     /*
