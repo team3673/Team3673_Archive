@@ -53,6 +53,9 @@ public class Robot extends TimedRobot {
 
 
   //color sensor 
+  public final static String colorOrder = "RGBYRG" ;
+
+
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
@@ -78,6 +81,8 @@ public class Robot extends TimedRobot {
 
 
 
+
+
   //test pixy2 code 
   /*
   private JoystickButton lampRedButton; 
@@ -92,7 +97,7 @@ public class Robot extends TimedRobot {
   private JoystickButton dislodgePower;
 
   public static Button xContBallOutput = new JoystickButton(xController, 1);
-  //public static Button xContBallOutputRev = new JoystickButton(xController, 3);
+  public static Button xContBallOutputRev = new JoystickButton(xController, 3);
 
   boolean xboxRightPressed;
 
@@ -110,6 +115,8 @@ public class Robot extends TimedRobot {
 
   boolean readyToShoot;
 
+  boolean reverseDrive;
+
   //boolean colorBlock = false;
 
   enum autoStateType {moveForward, shoot, moveBackward};
@@ -122,7 +129,8 @@ public class Robot extends TimedRobot {
 
   long startTime;
   
- // boolean outPutRevButton;
+  boolean outPutRevButton;
+
 
 
   //encoder shtuff
@@ -211,7 +219,8 @@ public class Robot extends TimedRobot {
     upperIntake = new Spark(4);
 
     lowerIntake = new Spark(5);
-//color sensor code
+
+    //color sensor code
     m_colorMatcher.addColorMatch(kBlueTarget);
     m_colorMatcher.addColorMatch(kGreenTarget);
     m_colorMatcher.addColorMatch(kRedTarget);
@@ -236,6 +245,8 @@ public class Robot extends TimedRobot {
 
 
     haveGameData = false;
+
+    reverseDrive = false;
   }
 
   public void autonomousInit() {
@@ -357,8 +368,16 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY());
-
+    if (m_rightStick.getThrottle() > 0.0) {
+      reverseDrive = false;
+    } else {
+      reverseDrive = true;
+    }
+    if (reverseDrive) {
+     m_myRobot.tankDrive(-m_rightStick.getY(), -m_leftStick.getY());
+    } else {
+     m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY());
+    }
     final Color detectedColor = m_colorSensor.getColor();
 
     final double IR = m_colorSensor.getIR();
@@ -383,12 +402,18 @@ public class Robot extends TimedRobot {
     final String colorString;
     final ColorMatchResult match = m_colorMatcher.matchClosestColor(detectedColor);
 
-    boolean booleanRed = false;
-    boolean booleanGreen = false;
-    boolean booleanBlue = false;
-    boolean booleanYellow = false;
+    boolean robotSeesRed = false;
+    boolean robotSeesGreen = false;
+    boolean robotSeesBlue = false;
+    boolean robotSeesYellow = false;
 
-    
+    /*
+    boolean fieldSeesRed = false;
+    boolean fieldSeesGreen = false;
+    boolean fieldSeesBlue = false;
+    boolean fieldSeesYellow = false;
+    */
+
     colorWheelSpeed = 0.0;
     
     xboxRightPressed = xContRightTrigger.get();
@@ -401,14 +426,14 @@ public class Robot extends TimedRobot {
     dislodgeButton = dislodgePower.get();
 
     outPutButton = xContBallOutput.get();
-    //outPutRevButton = xContBallOutputRev.get();
+    outPutRevButton = xContBallOutputRev.get();
 
     if (xboxRightPressed == true && xboxLeftPressed == true) {
       colorWheelSpeed = 0.0;
     } else if (xboxLeftPressed == true) {
-      colorWheelSpeed = -0.3;
+      colorWheelSpeed = -0.5;
     } else if (xboxRightPressed == true) {
-      colorWheelSpeed = 0.3;
+      colorWheelSpeed = 0.5;
     }else {
       colorWheelSpeed = 0.0;
     }
@@ -425,16 +450,16 @@ public class Robot extends TimedRobot {
      
     
     if (intakeButton == true) {
-      upperIntake.set(0.4);
-      lowerIntake.set(-0.4);
+      upperIntake.set(0.5);
+      lowerIntake.set(-0.5);
     } else if (dislodgeButton == true) {
-      upperIntake.set(-0.4);
-      lowerIntake.set(-0.4);
-    /*} else if (outPutRevButton == true) {
-      upperIntake.set(-0.3);
-      lowerIntake.set(0.0);*/
-    } else if (outPutButton == true) {
       upperIntake.set(-0.5);
+      lowerIntake.set(0.5);
+    } else if (outPutRevButton == true) {
+      upperIntake.set(-0.3);
+      lowerIntake.set(0.0);
+    } else if (outPutButton == true) {
+      upperIntake.set(-0.4);
       lowerIntake.set(-0.5);
     } else {
       upperIntake.set(0.0);
@@ -444,24 +469,24 @@ public class Robot extends TimedRobot {
 
     if (match.color == kBlueTarget) {
       colorString = "Blue";
-      SmartDashboard.putBoolean("isBlue", booleanBlue);
+      SmartDashboard.putBoolean("isBlue", robotSeesBlue);
       //colorWidget.withProperties("colorWhenTrue", Blue);
-      booleanBlue = true;
+      robotSeesBlue = true;
     } else if (match.color == kRedTarget) {
       colorString = "Red";
-        SmartDashboard.putBoolean("isRed", booleanRed);
+        SmartDashboard.putBoolean("isRed", robotSeesRed);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kRedTarget));
-      booleanRed = true;
+      robotSeesRed = true;
     } else if (match.color == kGreenTarget) {
       colorString = "Green";
-      SmartDashboard.putBoolean("isGreen", booleanGreen);
+      SmartDashboard.putBoolean("isGreen", robotSeesGreen);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kGreenTarget));
-      booleanGreen = true;
+      robotSeesGreen = true;
     } else if (match.color == kYellowTarget) {
       colorString = "Yellow";
-      SmartDashboard.putBoolean("isYellow", booleanYellow);
+      SmartDashboard.putBoolean("isYellow", robotSeesYellow);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kYellowTarget));
-      booleanYellow = true;
+      robotSeesYellow = true;
     } else {
       colorString = "Unknown";
     }
@@ -470,10 +495,10 @@ public class Robot extends TimedRobot {
     
     //keep (color block code)
     
-    SmartDashboard.putBoolean("isRed", booleanRed);
-    SmartDashboard.putBoolean("isYellow", booleanYellow);
-    SmartDashboard.putBoolean("isBlue", booleanBlue);
-    SmartDashboard.putBoolean("isGreen", booleanGreen);
+    SmartDashboard.putBoolean("isRed", robotSeesRed);
+    SmartDashboard.putBoolean("isYellow", robotSeesYellow);
+    SmartDashboard.putBoolean("isBlue", robotSeesBlue);
+    SmartDashboard.putBoolean("isGreen", robotSeesGreen);
     
 
   
@@ -494,34 +519,34 @@ public class Robot extends TimedRobot {
 
   
     String gameData = DriverStation.getInstance().getGameSpecificMessage();
-    if(gameData.length() > 0)
-    { haveGameData = true;
+    if(gameData.length() > 0) {
+      haveGameData = true;
       if (autoColorSpin.get()) {
         colorWheelSpeed = 0.2;
       } 
-      switch (gameData.charAt(0))
-      {
+      char lookingFor = robotShouldSee(gameData);
+      switch (lookingFor) {
         case 'B' :
           //Blue case code, feild wants blue stop at red
-          if (booleanRed == true) {
+          if (robotSeesBlue == true) {
             colorWheelSpeed = 0.0;
           }
           break;
         case 'G' :
           //Green case code feild wants green stop at yellow
-          if (booleanYellow == true) {
+          if (robotSeesGreen == true) {
             colorWheelSpeed = 0.0;
           }
           break;
         case 'R' :
           //Red case code feild wants red stop at blue
-          if (booleanBlue == true) {
+          if (robotSeesRed == true) {
             colorWheelSpeed = 0.0;
           }
           break;
         case 'Y' :
           //Yellow case code feild wants yellow stop at green
-          if (booleanGreen == true) {
+          if (robotSeesYellow == true) {
             colorWheelSpeed = 0.0;
           }
           break;
@@ -531,6 +556,7 @@ public class Robot extends TimedRobot {
           break;
       }
     } 
+    
 
   //keep
   
@@ -576,5 +602,10 @@ public class Robot extends TimedRobot {
 
     colorWheel.set(colorWheelSpeed);
     
+  }
+
+  public char robotShouldSee(String gameData) {
+    int foundAt = colorOrder.indexOf(gameData);
+    return colorOrder.charAt(foundAt + 2);
   }
 }
