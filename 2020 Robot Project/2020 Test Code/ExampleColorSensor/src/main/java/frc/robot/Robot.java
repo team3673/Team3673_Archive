@@ -63,6 +63,11 @@ public class Robot extends TimedRobot {
   private final ColorMatch m_colorMatcher = new ColorMatch();
 
   public Spark colorWheel = new Spark(6);
+
+  enum ColorOrderType {Red, Green, Blue, Yellow, Unknown};
+  ColorOrderType lastColorSeen; 
+
+  int wedgeCount;
  
   private final Color kBlueTarget = ColorMatch.makeColor(0.143, 0.427, 0.429);
   private final Color kGreenTarget = ColorMatch.makeColor(0.197, 0.561, 0.240);
@@ -117,6 +122,11 @@ public class Robot extends TimedRobot {
 
   boolean reverseDrive;
 
+  boolean autoSpin;
+
+  
+
+
   //boolean colorBlock = false;
 
   enum autoStateType {moveForward, shoot, moveBackward};
@@ -160,6 +170,8 @@ public class Robot extends TimedRobot {
   private int autoMode = 0;
 
   private double colorWheelSpeed;
+
+  boolean colorWheelManual;
 
   
   private SendableChooser<Integer>autoCommand;
@@ -247,6 +259,12 @@ public class Robot extends TimedRobot {
     haveGameData = false;
 
     reverseDrive = false;
+
+    colorWheelManual = false;
+
+    wedgeCount = 0;
+
+    autoSpin = false;
   }
 
   public void autonomousInit() {
@@ -428,15 +446,18 @@ public class Robot extends TimedRobot {
     outPutButton = xContBallOutput.get();
     outPutRevButton = xContBallOutputRev.get();
 
-    if (xboxRightPressed == true && xboxLeftPressed == true) {
-      colorWheelSpeed = 0.0;
-    } else if (xboxLeftPressed == true) {
+    if (xboxLeftPressed == true) {
       colorWheelSpeed = -0.5;
+      colorWheelManual = true;
     } else if (xboxRightPressed == true) {
       colorWheelSpeed = 0.5;
-    }else {
+      colorWheelManual = true;
+    } else if (colorWheelManual == true) {
       colorWheelSpeed = 0.0;
+      colorWheelManual = false;
     }
+
+    
 
     if (xboxElvaUp == true && xboxElvaDown == true) {
       elvaLift.set(0.0);
@@ -466,29 +487,35 @@ public class Robot extends TimedRobot {
       lowerIntake.set(0.0);
     }
     
+    ColorOrderType currentColorSeen;
 
     if (match.color == kBlueTarget) {
       colorString = "Blue";
       SmartDashboard.putBoolean("isBlue", robotSeesBlue);
       //colorWidget.withProperties("colorWhenTrue", Blue);
       robotSeesBlue = true;
+      currentColorSeen = ColorOrderType.Blue;
     } else if (match.color == kRedTarget) {
       colorString = "Red";
         SmartDashboard.putBoolean("isRed", robotSeesRed);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kRedTarget));
       robotSeesRed = true;
+      currentColorSeen = ColorOrderType.Red;
     } else if (match.color == kGreenTarget) {
       colorString = "Green";
       SmartDashboard.putBoolean("isGreen", robotSeesGreen);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kGreenTarget));
       robotSeesGreen = true;
+      currentColorSeen = ColorOrderType.Green;
     } else if (match.color == kYellowTarget) {
       colorString = "Yellow";
       SmartDashboard.putBoolean("isYellow", robotSeesYellow);
      // colorWidget.withProperties(Map.of("colorWhenTrue", kYellowTarget));
       robotSeesYellow = true;
+      currentColorSeen = ColorOrderType.Yellow;
     } else {
       colorString = "Unknown";
+      currentColorSeen = ColorOrderType.Unknown;
     }
 
     //colorWidget.withProperties(Map.of("colorWhenTrue", match.color));
@@ -555,8 +582,26 @@ public class Robot extends TimedRobot {
           
           break;
       }
-    } 
+    } else {
+      if (autoColorSpin.get() && !autoSpin) {
+        colorWheelSpeed = 0.2;
+        autoSpin = true;
+        wedgeCount = 0;
+        lastColorSeen = currentColorSeen;
+      } 
+      if (autoSpin) {
+        if (currentColorSeen != lastColorSeen) {
+          wedgeCount ++;
+          lastColorSeen = currentColorSeen;
+        }
+        if (wedgeCount > 24) {
+          colorWheelSpeed = 0.0;
+          autoSpin = false;
+        }
+      }
+    }
     
+
 
   //keep
   
@@ -565,6 +610,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
+
     
 
     //pixy2 code do not add to new code
