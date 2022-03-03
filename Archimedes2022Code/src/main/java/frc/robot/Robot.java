@@ -45,8 +45,11 @@ public class Robot extends TimedRobot {
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
         HAL.report(tResourceType.kResourceType_Framework, tInstances.kFramework_RobotBuilder);
-        UsbCamera camera = CameraServer.startAutomaticCapture();
-        camera.setResolution(320, 180);
+        UsbCamera cameraFront = CameraServer.startAutomaticCapture();
+        cameraFront.setResolution(320, 180);
+
+        UsbCamera cameraBack = CameraServer.startAutomaticCapture();
+        cameraBack.setResolution(320, 180);
         
         
 

@@ -186,8 +186,9 @@ public class DriveTrain extends SubsystemBase {
         // This method will be called once per scheduler run when in simulation
 
     }
+    // Only Use for tele
     public void drive(double left, double right) {
-        drive.tankDrive(left, right);
+        drive.tankDrive(right, left);
     }
     public void stop(){
         drive.tankDrive(0.0,0.0);
@@ -195,12 +196,18 @@ public class DriveTrain extends SubsystemBase {
     }
     // Put methods for controlling this subsystem
     // here. Call these from Commands.
-    /*
-    public void setMotors(double leftSpeed, double rightSpeed) {
     
-        leftMotors.set(leftSpeed);
-        rightMotors.set(-rightSpeed);
-    }*/
+    // Only use for Auto
+
+    public void setMotors(double leftSpeed, double rightSpeed) {
+    // Assuming no wheel slip, the difference in encoder distances is proportional to the heading error
+    double error = leftEncoder.getDistance() - rightEncoder.getDistance();
+
+    // Drives forward continuously at half speed, using the encoders to stabilize the heading
+    
+        leftMotors.set(leftSpeed + Constants.PIDConstants.kP * error);
+        rightMotors.set(rightSpeed - Constants.PIDConstants.kP * error);
+    }
 
 
 

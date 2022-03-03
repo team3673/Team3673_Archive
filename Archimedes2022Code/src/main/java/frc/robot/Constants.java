@@ -51,8 +51,13 @@ public class Constants {
        public static final int kRightMotor2Port = 3;
        */ 
      }
+     public static final class ElevatorConstants {
+      public static final double kElevatorUp = 1;
+      public static final double kElevatorDown = -1;
+
+     }
      public static final class PIDConstants {
-      public static final double kP = 0.03;
+      public static final double kP = 0.2;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double kToleranceDegrees = 2.0f;

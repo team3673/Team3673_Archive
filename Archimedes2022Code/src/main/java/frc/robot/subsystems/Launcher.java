@@ -8,8 +8,8 @@ private Spark launcherMotorR;
 private Spark launcherMotorL;
 
     public Launcher(){
-        launcherMotorR = new Spark(5);
-        launcherMotorL = new Spark(6);
+        launcherMotorR = new Spark(8);
+        launcherMotorL = new Spark(9);
 
 
         

@@ -7,7 +7,7 @@ public class Intake extends SubsystemBase {
 private Spark intakeMotor;
 
     public Intake(){
-        intakeMotor = new Spark(8); // 5 and 6 is what these were before my dum dum changes
+        intakeMotor = new Spark(5); // 5 and 6 is what these were before my dum dum changes
        
 
 

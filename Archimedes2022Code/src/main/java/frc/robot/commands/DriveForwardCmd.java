@@ -38,12 +38,12 @@ public class DriveForwardCmd extends CommandBase {
         System.out.println(driveTrain.getLeftEncoder()+ "\t\t"+driveTrain.getRightEncoder() + "\t\t" + driveTrain.getEncoderAverage() );
     
 
-        driveTrain.drive(DriveConstants.kAutoForwardSpeed, DriveConstants.kAutoForwardSpeed);
+        driveTrain.setMotors(DriveConstants.kAutoForwardSpeed, DriveConstants.kAutoForwardSpeed);
     }
 
     @Override
     public void end(boolean interrupted) {
-        driveTrain.drive(0, 0);
+        driveTrain.setMotors(0, 0);
         System.out.println("DriveForwardCmd ended!");
     }
 
