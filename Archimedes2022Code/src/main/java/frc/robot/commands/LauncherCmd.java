@@ -23,7 +23,7 @@ public class LauncherCmd extends CommandBase {
 
     @Override
     public void initialize(){
-        System.out.println("Launcher starting");
+       // System.out.println("Launcher starting");
     }
     @Override
     public void execute(){
@@ -35,7 +35,7 @@ public class LauncherCmd extends CommandBase {
      // Called once the command ends or is interrupted.
      @Override
      public void end(boolean interrupted) {
-         System.out.println("Yeet!");
+         //System.out.println("Yeet!");
          m_launcher.spin(0.0);
  
      }

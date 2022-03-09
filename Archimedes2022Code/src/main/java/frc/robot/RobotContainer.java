@@ -129,11 +129,13 @@ public class RobotContainer {
  
     //Launcher Buttons
     new JoystickButton(leftStick, 4 )
-    .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedUp));
+    .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedUpSlow));
     new JoystickButton(leftStick, 3 )
-    .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedDown));
+    .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedUp));
     new JoystickButton(leftStick, 2 )
     .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedStop));
+    new JoystickButton(leftStick, 7 )
+    .whenActive(new LauncherCmd(m_launcher, Constants.LauncherConstants.kLauncherSpeedDown));
     //Intake (Same buttons as launcher)
     
     new JoystickButton(rightStick, 1 )
@@ -144,11 +146,12 @@ public class RobotContainer {
     .whileActiveOnce(new IntakeCmd(m_Intake, Constants.IntakeConstants.kIntakeSpeedStop));
 
     //Elevator Buttons
+    
     new JoystickButton(rightStick, 7)
     .whenHeld(new ElevatorCmd(m_Elevator, Constants.ElevatorConstants.kElevatorUp));
     new JoystickButton(rightStick, 8)
     .whenHeld(new ElevatorCmd(m_Elevator, Constants.ElevatorConstants.kElevatorDown));
-/* 
+/*  
     new JoystickButton(rightStick, 13 )
     .whenActive(new Tankdrive(m_driveTrain,   () -> leftStick.getY(),
     () -> rightStick.getY()) );

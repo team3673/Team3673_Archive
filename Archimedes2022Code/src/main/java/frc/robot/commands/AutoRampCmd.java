@@ -24,14 +24,14 @@ public class AutoRampCmd extends CommandBase {
 
     @Override
     public void initialize(){
-        System.out.println("AutoRamp starting");
+       // System.out.println("AutoRamp starting");
     }
     @Override
     public void execute(){
         double currentTime =Timer.getFPGATimestamp();
         elapsedTime = currentTime - startTime;
 
-        if (elapsedTime > 0.5){
+        if (elapsedTime > 0.75){
                 m_Ramp.convey(-rampSpeed);
         }
       
@@ -40,7 +40,7 @@ public class AutoRampCmd extends CommandBase {
      // Called once the command ends or is interrupted.
      @Override
      public void end(boolean interrupted) {
-         System.out.println("Auto Ramp has ended");
+        // System.out.println("Auto Ramp has ended");
          m_Ramp.convey(0.0);
  
      }

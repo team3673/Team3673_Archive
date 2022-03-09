@@ -201,12 +201,13 @@ public class DriveTrain extends SubsystemBase {
 
     public void setMotors(double leftSpeed, double rightSpeed) {
     // Assuming no wheel slip, the difference in encoder distances is proportional to the heading error
-    double error = leftEncoder.getDistance() - rightEncoder.getDistance();
+    double error = rightEncoder.getDistance() - leftEncoder.getDistance();
 
     // Drives forward continuously at half speed, using the encoders to stabilize the heading
     
-        leftMotors.set(leftSpeed + Constants.PIDConstants.kP * error);
+        leftMotors.set(leftSpeed + Constants.PIDConstants.kP * error );
         rightMotors.set(rightSpeed - Constants.PIDConstants.kP * error);
+       
     }
 
 

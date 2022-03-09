@@ -43,7 +43,7 @@ public class Constants {
       //public static final double kEncoderTick2Feet = 1.0 / 2048.0 * 0.5 * Math.PI;
       public static final double kEncoderDistancePerPulse = 0.5 * Math.PI / 2048;
       public static final double kAutoForwardSpeed = 0.4;
-      public static final double kAutoForwardDistance = 11;
+      public static final double kAutoForwardDistance = 7.5;
        /*
        public static final int kLeftMotor1Port = 0;
        public static final int kLeftMotor2Port = 1;
@@ -57,7 +57,7 @@ public class Constants {
 
      }
      public static final class PIDConstants {
-      public static final double kP = 0.2;
+      public static final double kP = 0.03;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double kToleranceDegrees = 2.0f;

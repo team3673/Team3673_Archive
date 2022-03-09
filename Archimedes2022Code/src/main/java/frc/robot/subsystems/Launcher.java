@@ -27,8 +27,8 @@ private Spark launcherMotorL;
 
     }
     public void spin(double speed) {
-        launcherMotorR.set(speed*0.55); // 1 hits antifloor, 0.8 just barely misses ceiling, 0.45\ just beyond white box
-        launcherMotorL.set(-speed*0.55);
+        launcherMotorR.set(speed*0.45); // 1 hits antifloor, 0.8 just barely misses ceiling, 0.45\ just beyond white box
+        launcherMotorL.set(-speed*0.45); // 0.45
         
     }
     public void stop(){
