@@ -36,7 +36,7 @@ public class AutoLauncherCmd extends CommandBase {
         
 
         
-        m_launcher.spin(launchSpeed/0.9);
+        m_launcher.spin(launchSpeed);
         
    
     }

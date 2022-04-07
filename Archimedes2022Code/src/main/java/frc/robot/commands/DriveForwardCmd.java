@@ -35,7 +35,7 @@ public class DriveForwardCmd extends CommandBase {
 
     @Override
     public void execute() {
-        System.out.println(driveTrain.getLeftEncoder()+ "\t\t"+driveTrain.getRightEncoder() + "\t\t" + driveTrain.getEncoderAverage() );
+       System.out.println(driveTrain.getLeftEncoder()+ "\t\t"+driveTrain.getRightEncoder() + "\t\t" + driveTrain.getEncoderAverage() );
     
 
         driveTrain.setMotors(DriveConstants.kAutoForwardSpeed, DriveConstants.kAutoForwardSpeed);

@@ -153,7 +153,7 @@ public class DriveTrain extends SubsystemBase {
   }
 
   public double getRightEncoder(){
-    return rightEncoder.getDistance();
+    return rightEncoder.getDistance();//*13.3558*1.6*1.25*0.9
 
   }
   public double getLeftEncoder(){
@@ -205,8 +205,8 @@ public class DriveTrain extends SubsystemBase {
 
     // Drives forward continuously at half speed, using the encoders to stabilize the heading
     
-        leftMotors.set(leftSpeed + Constants.PIDConstants.kP * error );
-        rightMotors.set(rightSpeed - Constants.PIDConstants.kP * error);
+        leftMotors.set(leftSpeed - Constants.PIDConstants.kP * error );
+        rightMotors.set(rightSpeed + Constants.PIDConstants.kP * error);
        
     }
 

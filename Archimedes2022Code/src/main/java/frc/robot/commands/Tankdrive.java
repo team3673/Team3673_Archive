@@ -94,7 +94,7 @@ public class Tankdrive extends CommandBase {
             right = -temp;
         }
 
-        System.out.println(m_driveTrain.getLeftEncoder()+ "\t\t"+m_driveTrain.getRightEncoder() );
+       System.out.println(m_driveTrain.getLeftEncoder()+ "\t\t"+m_driveTrain.getRightEncoder() );
         
         m_driveTrain.drive(left,right);
         

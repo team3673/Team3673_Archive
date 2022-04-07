@@ -27,8 +27,8 @@ private Spark elevatorMotorL;
 
     }
     public void left(double speed) {
-        elevatorMotorR.set(speed*0.65); // 1 hits antifloor, 0.8 just barely misses ceiling, 0.45\ just beyond white box
-        elevatorMotorL.set(speed*0.55);
+        elevatorMotorL.set(speed*0.96); 
+        elevatorMotorR.set(speed*0.96);
         
     }
     public void stop(){

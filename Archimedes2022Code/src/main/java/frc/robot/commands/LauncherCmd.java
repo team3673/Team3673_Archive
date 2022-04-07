@@ -14,7 +14,6 @@ public class LauncherCmd extends CommandBase {
         this.launchSpeed = launchSpeed;
 
         
-
         m_launcher = subsystem;
         addRequirements(m_launcher);
     }
@@ -30,6 +29,7 @@ public class LauncherCmd extends CommandBase {
 
 
         m_launcher.spin(launchSpeed);
+       // System.out.println(m_launcher.getUltrasonic());
         
     }
      // Called once the command ends or is interrupted.
@@ -37,6 +37,7 @@ public class LauncherCmd extends CommandBase {
      public void end(boolean interrupted) {
          //System.out.println("Yeet!");
          m_launcher.spin(0.0);
+         
  
      }
  
