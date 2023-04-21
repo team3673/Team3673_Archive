@@ -8,9 +8,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.I2C;
+//import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -20,7 +19,6 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 //import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 
 //import java.util.Map;
 
@@ -45,14 +43,14 @@ public class Robot extends TimedRobot {
   //pixy shtuff 
   
   //auto distance 
-  private int autoDistance; 
+ // private int autoDistance; 
 
 
   //color sensor 
   public final static String colorOrder = "RGBYRG" ;
 
 
-  private final I2C.Port i2cPort = I2C.Port.kOnboard;
+  //private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
 
   public Spark colorWheel = new Spark(6);
@@ -61,6 +59,8 @@ public class Robot extends TimedRobot {
   ColorOrderType lastColorSeen; 
 
   int wedgeCount;
+
+  
  
  
 //xbox buttons
@@ -157,7 +157,7 @@ public class Robot extends TimedRobot {
   //auto code
   //private boolean moveForward;
 
-  private int autoMode = 0;
+ // private int autoMode = 0;
 
   private double colorWheelSpeed;
 
@@ -258,7 +258,7 @@ public class Robot extends TimedRobot {
     //distance from init line to alliance wall in inches minus Length of robot (120-34) 86
     m_myRobot.setSafetyEnabled(false);
 
-    autoDistance = 86;
+  //  autoDistance = 86;
 
     
     leftEncoder.reset();
@@ -273,7 +273,7 @@ public class Robot extends TimedRobot {
 
     readyToShoot = false;
 
-    autoMode = (int) autoCommand.getSelected();
+  //  autoMode = (int) autoCommand.getSelected();
 
     autoState = autoStateType.moveForward;
 
@@ -297,7 +297,7 @@ public class Robot extends TimedRobot {
 
     //SmartDashboard.putNumber("autoMode", autoMode);
 
-
+/*
     switch(autoMode) {
 
       case 1 :
@@ -352,6 +352,7 @@ public class Robot extends TimedRobot {
       //Do nothing
 
       }
+      */
 
       m_left.set(leftSpeed);
       m_right.set(rightSpeed);
@@ -445,8 +446,11 @@ public class Robot extends TimedRobot {
       upperIntake.set(0.75);
       lowerIntake.set(-0.5);
     } else if (dislodgeButton == true) {
-      upperIntake.set(-0.5);
+     /* upperIntake.set(-0.5);
       lowerIntake.set(0.5);
+      */
+      upperIntake.set(-0.9);
+      lowerIntake.set(-1.0 );
     } else if (outPutRevButton == true) {
       upperIntake.set(-0.3);
       lowerIntake.set(0.0);
@@ -458,7 +462,7 @@ public class Robot extends TimedRobot {
       lowerIntake.set(0.0);
     }
     
-    ColorOrderType currentColorSeen;
+   // ColorOrderType currentColorSeen;
 
    
     //colorWidget.withProperties(Map.of("colorWhenTrue", match.color));
