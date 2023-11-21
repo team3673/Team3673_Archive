@@ -1,0 +1,77 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.server.launchMode": "Standard",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "bin/": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true,
+    "**/*~": true
+  },
+  "java.test.config": [
+    {
+      "name": "WPIlibUnitTests",
+      "workingDirectory": "${workspaceFolder}/build/jni/release",
+      "vmargs": [ "-Djava.library.path=${workspaceFolder}/build/jni/release" ],
+      "env": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release" ,
+        "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
+      }
+    },
+  ],
+  "java.test.defaultConfig": "WPIlibUnitTests",
+  "spotlessGradle.format.enable": true,
+  "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
+  "editor.codeActionsOnSave": {
+  "source.fixAll.spotlessGradle": true
+  },
+  "cSpell.words": [
+    "APRILTAG",
+    "algs",
+    "brushless",
+    "Cancoder",
+    "canbus",
+    "CANID",
+    "CANIDs",
+    "chargedup",
+    "closedloop",
+    "CTRE",
+    "curr",
+    "DEADBAND",
+    "Feedforward",
+    "gamepad",
+    "gradlew",
+    "holonomic",
+    "Huskie",
+    "jama",
+    "javac",
+    "leds",
+    "Nivore",
+    "odometry",
+    "openloop",
+    "photonvision",
+    "PIDF",
+    "rapidreact",
+    "REVPHJNI",
+    "rezero",
+    "scurve",
+    "Sedgewick",
+    "setpoint",
+    "SIMBOT",
+    "Teleop",
+    "teleoperated",
+    "TRACKWIDTH",
+    "tunables",
+    "Vandermonde",
+    "VBAT",
+    "WPILOG",
+    "Xstance",
+    "YUYV"
+  ]  
+}
